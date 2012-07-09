@@ -14,6 +14,7 @@ var block = {
   code: /^( {4}[^\n]+\n*)+/,
   fences: noop,
   hr: /^( *[-*_]){3,} *(?:\n+|$)/,
+  table: /^(([^|]+\|)+[^\n]*){2,}/,
   heading: /^ *(#{1,6}) *([^\n]+?) *#* *(?:\n+|$)/,
   lheading: /^([^\n]+)\n *(=|-){3,} *\n*/,
   blockquote: /^( *>[^\n]+(\n[^\n]+)*\n*)+/,
@@ -134,6 +135,41 @@ block.token = function(src, tokens, top) {
         lang: cap[1],
         text: cap[2]
       });
+      continue;
+    }
+
+    // table
+    if (cap = block.table.exec(src)) {
+      src = src.substring(cap[0].length);
+
+      tokens.push({
+        type: 'table_start'
+      });
+
+      var rows = cap[0].split(/\n+ *-+ *\n+/);
+      rows.forEach(function(row) {
+        tokens.push({
+          type: 'row_start'
+        });
+
+        var cols = row.split(' | ');
+        cols.forEach(function(col) {
+          //tokens.push({
+          //  type: 'cell', // or paragraph
+          //  text: col
+          //});
+          block.token(col, tokens, top);
+        });
+
+        tokens.push({
+          type: 'row_end'
+        });
+      });
+
+      tokens.push({
+        type: 'table_end'
+      });
+
       continue;
     }
 
@@ -617,6 +653,31 @@ function tok() {
         ? inline.lexer(token.text)
         : token.text;
     }
+    case 'table_start': {
+      var body = '';
+      while (next().type !== 'table_end') {
+        body += tok();
+      }
+      return '<table>\n'
+        + body
+        + '</table>\n';
+    }
+    case 'row_start': {
+      var body = '';
+      while (next().type !== 'row_end') {
+        body += '<td>'
+          + tok()
+          + '</td>\n';
+      }
+      return '<tr>\n'
+        + body
+        + '</tr>\n';
+    }
+    //case 'cell': {
+    //  return '<td>'
+    //    + inline.lexer(token.text)
+    //    + '</td>';
+    //}
     case 'paragraph': {
       return '<p>'
         + inline.lexer(token.text)
