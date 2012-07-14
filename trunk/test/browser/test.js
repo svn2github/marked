@@ -1,9 +1,10 @@
 ;(function() {
 
-var console = {}
-  , files = __TESTS__;
+var files = __TESTS__;
 
-console.log = function(text) {
+var BREAK_ON_ERROR = false;
+
+var print = function(text) {
   var args = Array.prototype.slice.call(arguments, 1)
     , i = 0;
 
@@ -15,50 +16,38 @@ console.log = function(text) {
   document.body.innerHTML += '<pre>' + escape(text) + '</pre>';
 };
 
-if (!Object.keys) {
-  Object.keys = function(obj) {
-    var out = []
-      , key;
+var console = { log: print };
 
-    for (key in obj) {
-      if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        out.push(key);
-      }
+var load = function() {};
+
+Object.keys = Object.keys || function(obj) {
+  var out = []
+    , key;
+
+  for (key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      out.push(key);
     }
+  }
 
-    return out;
-  };
-}
+  return out;
+};
 
-if (!Array.prototype.forEach) {
-  Array.prototype.forEach = function(callback, context) {
-    for (var i = 0; i < this.length; i++) {
-      callback.call(context || null, this[i], i, obj);
-    }
-  };
-}
+String.prototype.trim = String.prototype.trim || function() {
+  return this.replace(/^\s+|\s+$/g, '');
+};
 
-if (!String.prototype.trim) {
-  String.prototype.trim = function() {
-    return this.replace(/^\s+|\s+$/g, '');
-  };
-}
-
-function load() {
-  return files;
-}
-
-function escape(html, encode) {
+var escape = function(html, encode) {
   return html
     .replace(!encode ? /&(?!#?\w+;)/g : /&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
-}
+};
 
-__LIBS__;
+var main = __MAIN__;
 
-(__MAIN__)();
+main();
 
 }).call(this);
