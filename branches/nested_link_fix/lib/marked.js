@@ -473,6 +473,8 @@ inline.pedantic = merge({}, inline.normal, {
 inline.gfm = merge({}, inline.normal, {
   escape: replace(inline.escape)('])', '~])')(),
   url: /^(https?:\/\/[^\s<]+[^<.,:;"')\]\s])/,
+  // Uncomment to avoid the /<a/.test(cap[0]) code for gfm urls.
+  // url: /^(https?:\/\/[^\s<]+[^<.,:;"')\]\s])(?![^<>]*<\/a>)/,
   del: /^~~(?=\S)([\s\S]*?\S)~~/,
   text: replace(inline.text)
     (']|', '~]|')
@@ -533,7 +535,7 @@ InlineLexer.output = function(src, links, opt) {
  * Lexing/Compiling
  */
 
-InlineLexer.prototype.output = function(src) {
+InlineLexer.prototype.output = function(src, ln) {
   var out = ''
     , link
     , text
@@ -549,7 +551,7 @@ InlineLexer.prototype.output = function(src) {
     }
 
     // autolink
-    if (cap = this.rules.autolink.exec(src)) {
+    if (!ln && (cap = this.rules.autolink.exec(src))) {
       src = src.substring(cap[0].length);
       if (cap[2] === '@') {
         text = cap[1][6] === ':'
@@ -569,7 +571,7 @@ InlineLexer.prototype.output = function(src) {
     }
 
     // url (gfm)
-    if (cap = this.rules.url.exec(src)) {
+    if (!ln && (cap = this.rules.url.exec(src))) {
       src = src.substring(cap[0].length);
       text = escape(cap[1]);
       href = text;
@@ -584,6 +586,11 @@ InlineLexer.prototype.output = function(src) {
     // tag
     if (cap = this.rules.tag.exec(src)) {
       src = src.substring(cap[0].length);
+      if (/^<a /i.test(cap[0])) {
+        ln = true;
+      } else if (/^<\/a/i.test(cap[0])) {
+        ln = false;
+      }
       out += this.options.sanitize
         ? escape(cap[0])
         : cap[0];
@@ -591,7 +598,7 @@ InlineLexer.prototype.output = function(src) {
     }
 
     // link
-    if (cap = this.rules.link.exec(src)) {
+    if ((!ln || src[0] === '!') && (cap = this.rules.link.exec(src))) {
       src = src.substring(cap[0].length);
       out += this.outputLink(cap, {
         href: cap[2],
@@ -601,8 +608,9 @@ InlineLexer.prototype.output = function(src) {
     }
 
     // reflink, nolink
-    if ((cap = this.rules.reflink.exec(src))
-        || (cap = this.rules.nolink.exec(src))) {
+    if ((!ln || src[0] === '!')
+        && ((cap = this.rules.reflink.exec(src))
+        || (cap = this.rules.nolink.exec(src)))) {
       src = src.substring(cap[0].length);
       link = (cap[2] || cap[1]).replace(/\s+/g, ' ');
       link = this.links[link.toLowerCase()];
@@ -619,7 +627,7 @@ InlineLexer.prototype.output = function(src) {
     if (cap = this.rules.strong.exec(src)) {
       src = src.substring(cap[0].length);
       out += '<strong>'
-        + this.output(cap[2] || cap[1])
+        + this.output(cap[2] || cap[1], ln)
         + '</strong>';
       continue;
     }
@@ -628,7 +636,7 @@ InlineLexer.prototype.output = function(src) {
     if (cap = this.rules.em.exec(src)) {
       src = src.substring(cap[0].length);
       out += '<em>'
-        + this.output(cap[2] || cap[1])
+        + this.output(cap[2] || cap[1], ln)
         + '</em>';
       continue;
     }
@@ -653,7 +661,7 @@ InlineLexer.prototype.output = function(src) {
     if (cap = this.rules.del.exec(src)) {
       src = src.substring(cap[0].length);
       out += '<del>'
-        + this.output(cap[1])
+        + this.output(cap[1], ln)
         + '</del>';
       continue;
     }
@@ -689,7 +697,7 @@ InlineLexer.prototype.outputLink = function(cap, link) {
       + '"'
       : '')
       + '>'
-      + this.output(cap[1])
+      + this.output(cap[1], true)
       + '</a>';
   } else {
     return '<img src="'
