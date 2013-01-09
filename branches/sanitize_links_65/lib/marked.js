@@ -560,11 +560,11 @@ InlineLexer.prototype.output = function(src) {
         text = escape(cap[1]);
         href = text;
       }
-      out += '<a href="'
-        + href
-        + '">'
-        + text
-        + '</a>';
+      out += this.outputLink({
+        simple: true,
+        href: href,
+        text: text
+      });
       continue;
     }
 
@@ -573,11 +573,11 @@ InlineLexer.prototype.output = function(src) {
       src = src.substring(cap[0].length);
       text = escape(cap[1]);
       href = text;
-      out += '<a href="'
-        + href
-        + '">'
-        + text
-        + '</a>';
+      out += this.outputLink({
+        simple: true,
+        href: href,
+        text: text
+      });
       continue;
     }
 
@@ -593,7 +593,9 @@ InlineLexer.prototype.output = function(src) {
     // link
     if (cap = this.rules.link.exec(src)) {
       src = src.substring(cap[0].length);
-      out += this.outputLink(cap, {
+      out += this.outputLink({
+        img: cap[0][0] === '!',
+        text: cap[1],
         href: cap[2],
         title: cap[3]
       });
@@ -611,7 +613,12 @@ InlineLexer.prototype.output = function(src) {
         src = cap[0].substring(1) + src;
         continue;
       }
-      out += this.outputLink(cap, link);
+      out += this.outputLink({
+        img: cap[0][0] === '!',
+        text: cap[1],
+        href: link.href,
+        title: link.title
+      });
       continue;
     }
 
@@ -678,24 +685,18 @@ InlineLexer.prototype.output = function(src) {
  * Compile Link
  */
 
-InlineLexer.prototype.outputLink = function(cap, link) {
-  if (cap[0][0] !== '!') {
-    return '<a href="'
-      + escape(link.href)
-      + '"'
-      + (link.title
-      ? ' title="'
-      + escape(link.title)
-      + '"'
-      : '')
-      + '>'
-      + this.output(cap[1])
-      + '</a>';
-  } else {
+InlineLexer.prototype.outputLink = function(link) {
+  if (this.options.sanitize) {
+    if (/^\s*j\s*a\s*v\s*a\s*s\s*c\s*r\s*i\s*p\s*t\s*:/i.test(link.href)) {
+      return '';
+    }
+  }
+
+  if (link.img) {
     return '<img src="'
       + escape(link.href)
       + '" alt="'
-      + escape(cap[1])
+      + escape(link.text)
       + '"'
       + (link.title
       ? ' title="'
@@ -704,6 +705,26 @@ InlineLexer.prototype.outputLink = function(cap, link) {
       : '')
       + '>';
   }
+
+  if (link.simple) {
+    return '<a href="'
+      + link.href
+      + '">'
+      + link.text
+      + '</a>';
+  }
+
+  return '<a href="'
+    + escape(link.href)
+    + '"'
+    + (link.title
+    ? ' title="'
+    + escape(link.title)
+    + '"'
+    : '')
+    + '>'
+    + this.output(link.text)
+    + '</a>';
 };
 
 /**
