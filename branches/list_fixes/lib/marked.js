@@ -28,16 +28,28 @@ var block = {
 };
 
 block.item = /^(?:unorder|order)/;
+block._item = /^( *)({bull}) [^\n]*(?:\n(?!{sp}{bull} )[^\n]*)*/;
 block.item = replace(block.item, 'gm')
-  ('unorder', /^( *)([*+-]) [^\n]*(?:\n(?!\1\2 )[^\n]*)*/)
-  ('order', /^( *)(\d+\.) [^\n]*(?:\n(?!\\3\d+\. )[^\n]*)*/)
-  ('\\\\3', '\\3')
+  ('unorder', block._item)
+    ('{bull}', /[*+-]/)
+    ('{sp}', '\\1')
+    ('{bull}', '\\2')
+  ('order', block._item)
+    ('{bull}', /\d+\./)
+    ('{sp}', '\\3')
+    ('{bull}', /\d+\./)
   ();
 
+block._list = /^( *)({bull}) [\s\S]+?(?:hr|\n{2,}(?! )(?!{sp}{bull} )\n*|\s*$)/;
 block.list = replace(block.list)
-  ('unorder', /^( *)([*+-]) [\s\S]+?(?:hr|\n{2,}(?! )(?!\1\2 )\n*|\s*$)/)
-  ('order', /^( *)(\d+\.) [\s\S]+?(?:hr|\n{2,}(?! )(?!\\3\d+\. )\n*|\s*$)/)
-  ('\\\\3', '\\3')
+  ('unorder', block._list)
+    ('{bull}', /[*+-]/)
+    ('{sp}', '\\1')
+    ('{bull}', '\\2')
+  ('order', block._list)
+    ('{bull}', /\d+\./)
+    ('{sp}', '\\3')
+    ('{bull}', /\d+\./)
   (/hr/g, /\n+(?=(?: *[-*_]){3,} *(?:\n+|$))/)
   ();
 
