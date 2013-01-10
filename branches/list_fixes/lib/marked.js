@@ -19,7 +19,7 @@ var block = {
   nptable: noop,
   lheading: /^([^\n]+)\n *(=|-){3,} *\n*/,
   blockquote: /^( *>[^\n]+(\n[^\n]+)*\n*)+/,
-  list: /^( *)(bull) [\s\S]+?(?:hr|\n{2,}(?! )(?!\1bull )\n*|\s*$)/,
+  list: /^(?:unorder|order)/,
   html: /^ *(?:comment|closed|closing) *(?:\n{2,}|\s*$)/,
   def: /^ *\[([^\]]+)\]: *<?([^\s]+)>?(?: +["(]([^\n]+)[")])? *(?:\n+|$)/,
   table: noop,
@@ -27,15 +27,18 @@ var block = {
   text: /^[^\n]+/
 };
 
-block.bullet = /(?:[*+-]|\d+\.)/;
-block.item = /^( *)(bull) [^\n]*(?:\n(?!\1bull )[^\n]*)*/;
+block.item = /^(?:unorder|order)/;
 block.item = replace(block.item, 'gm')
-  (/bull/g, block.bullet)
+  ('unorder', /^( *)([*+-]) [^\n]*(?:\n(?!\1\2 )[^\n]*)*/)
+  ('order', /^( *)(\d+\.) [^\n]*(?:\n(?!\\3\d+\. )[^\n]*)*/)
+  ('\\\\3', '\\3')
   ();
 
 block.list = replace(block.list)
-  (/bull/g, block.bullet)
-  ('hr', /\n+(?=(?: *[-*_]){3,} *(?:\n+|$))/)
+  ('unorder', /^( *)([*+-]) [\s\S]+?(?:hr|\n{2,}(?! )(?!\1\2 )\n*|\s*$)/)
+  ('order', /^( *)(\d+\.) [\s\S]+?(?:hr|\n{2,}(?! )(?!\\3\d+\. )\n*|\s*$)/)
+  ('\\\\3', '\\3')
+  (/hr/g, /\n+(?=(?: *[-*_]){3,} *(?:\n+|$))/)
   ();
 
 block._tag = '(?!(?:'
@@ -275,7 +278,7 @@ Lexer.prototype.token = function(src, top) {
 
       this.tokens.push({
         type: 'list_start',
-        ordered: isFinite(cap[2])
+        ordered: !!cap[4]
       });
 
       // Get each top-level item.
