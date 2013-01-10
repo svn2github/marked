@@ -1,8 +1,7 @@
 var fs = require('fs');
 
-var test = require('../')
-  , runTests = test.runTests
-  , load = test.load;
+var main = require('../')
+  , load = main.load;
 
 var express = require('express')
   , app = express();
@@ -29,7 +28,7 @@ app.get('/test.js', function(req, res, next) {
     , files = load();
 
   test = test.replace('__TESTS__', JSON.stringify(files));
-  test = test.replace('__MAIN__', runTests + '');
+  test = test.replace('__MAIN__', main + '');
 
   res.contentType('.js');
   res.send(test);

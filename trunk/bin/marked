@@ -38,8 +38,7 @@ function main(argv, callback) {
     , input
     , output
     , arg
-    , tokens
-    , opt;
+    , tokens;
 
   function getarg() {
     var arg = argv.shift();
@@ -72,8 +71,6 @@ function main(argv, callback) {
   while (argv.length) {
     arg = getarg();
     switch (arg) {
-      case '--test':
-        return require('../test').main(process.argv.slice());
       case '-o':
       case '--output':
         output = argv.shift();
@@ -91,18 +88,12 @@ function main(argv, callback) {
         return help();
       default:
         if (arg.indexOf('--') === 0) {
-          opt = camelize(arg.replace(/^--(no-)?/, ''));
-          if (!marked.defaults.hasOwnProperty(opt)) {
-            continue;
-          }
-          if (arg.indexOf('--no-') === 0) {
-            options[opt] = typeof marked.defaults[opt] !== 'boolean'
-              ? null
-              : false;
+          arg = arg.substring(2);
+          if (arg.indexOf('no-') === 0) {
+            arg = arg.substring(3);
+            options[arg] = false;
           } else {
-            options[opt] = typeof marked.defaults[opt] !== 'boolean'
-              ? argv.shift()
-              : true;
+            options[arg] = true;
           }
         } else {
           files.push(arg);
@@ -164,12 +155,6 @@ function getStdin(callback) {
   } catch (e) {
     callback(e);
   }
-}
-
-function camelize(text) {
-  return text.replace(/(\w)-(\w)/g, function(_, a, b) {
-    return a + b.toUpperCase();
-  });
 }
 
 /**
