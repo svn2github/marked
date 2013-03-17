@@ -237,16 +237,13 @@ function runBench(options) {
   }
   bench('marked (pedantic)', marked);
 
-  // robotskirt
-  var rs = require('robotskirt');
-  bench('robotskirt', function(text) {
-    var parser = rs.Markdown.std();
-    return parser.render(text);
-  });
+  // Discount
+  var discount = require('discount').parse;
+  bench('discount', discount);
 
   // Showdown (Reusing the converter)
   var showdown = (function() {
-    var Showdown = require('showdown');
+    var Showdown = require('showdown').Showdown;
     var convert = new Showdown.converter();
     return function(text) {
       return convert.makeHtml(text);
@@ -256,7 +253,7 @@ function runBench(options) {
 
   // Showdown
   var showdown_slow = (function() {
-    var Showdown = require('showdown');
+    var Showdown = require('showdown').Showdown;
     return function(text) {
       var convert = new Showdown.converter();
       return convert.makeHtml(text);
@@ -266,7 +263,9 @@ function runBench(options) {
 
   // markdown-js
   var markdownjs = require('markdown');
-  bench('markdown-js', markdownjs.parse);
+  bench('markdown-js', function(text) {
+    markdownjs.parse(text);
+  });
 }
 
 /**
