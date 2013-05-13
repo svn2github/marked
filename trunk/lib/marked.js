@@ -352,7 +352,7 @@ Lexer.prototype.token = function(src, top) {
         type: this.options.sanitize
           ? 'paragraph'
           : 'html',
-        pre: cap[1] === 'pre' || cap[1] === 'script',
+        pre: cap[1] === 'pre' || cap[1] === 'script' || cap[1] === 'style',
         text: cap[0]
       });
       continue;
@@ -676,7 +676,7 @@ InlineLexer.prototype.output = function(src) {
     // text
     if (cap = this.rules.text.exec(src)) {
       src = src.substring(cap[0].length);
-      out += escape(this.smartypants(cap[0]));
+      out += escape(cap[0]);
       continue;
     }
 
@@ -728,10 +728,10 @@ InlineLexer.prototype.outputLink = function(cap, link) {
 InlineLexer.prototype.smartypants = function(text) {
   if (!this.options.smartypants) return text;
   return text
-      .replace(/--/g, '\u2014')
-      .replace(/'([^']*)'/g, '\u2018$1\u2019')
-      .replace(/"([^"]*)"/g, '\u201C$1\u201D')
-      .replace(/\.{3}/g, '\u2026');
+    .replace(/--/g, '—')
+    .replace(/'([^']*)'/g, '‘$1’')
+    .replace(/"([^"]*)"/g, '“$1”')
+    .replace(/\.{3}/g, '…');
 };
 
 /**
@@ -1096,8 +1096,7 @@ marked.defaults = {
   smartLists: false,
   silent: false,
   highlight: null,
-  langPrefix: 'lang-',
-  smartypants: false
+  langPrefix: 'lang-'
 };
 
 /**
