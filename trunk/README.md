@@ -37,11 +37,7 @@ marked.setOptions({
   langPrefix: 'lang-'
 });
 
-// Using async version of marked
-marked('I am using __markdown__.', function (err, content) {
-  if (err) throw err;
-  console.log(content);
-});
+console.log(marked('I am using __markdown__.'));
 ```
 
 ## marked(markdownString, [options], [callback])
@@ -59,8 +55,14 @@ Hash of options. Can also be set using the `marked.setOptions` method as seen ab
 ### callback
 Type: `Function`
 
-Function called when the `markdownString` has been fully parsed when using async highlighting. If the `options` argument is omitted, this can be used as the second argument as seen above:
-
+Function called when the `markdownString` has been fully parsed. If the `options` argument is omitted, this can be used as the second argument as follows:
+```js
+marked(markdownString, function (err, content) {
+  if (err) throw err;
+  console.log(content);
+  // Outputs parsed html
+});
+```
 ## Options
 
 ### gfm
@@ -76,8 +78,8 @@ A function to highlight code blocks. The function takes three arguments: code, l
 
 ```js
 marked.setOptions({
-  highlight: function (code, lang) {
-    return hljs.highlightAuto(code, lang).value;
+  highlight: function (lang, code) {
+    return hljs.highlightAuto(lang, code).value;
   }
 });
 ```
