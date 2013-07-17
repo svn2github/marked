@@ -1027,7 +1027,7 @@ function marked(src, opt, callback) {
       opt = null;
     }
 
-    opt = opt ? merge({}, marked.defaults, opt) : marked.defaults; 
+    if (opt) opt = merge({}, marked.defaults, opt);
 
     var highlight = opt.highlight
       , tokens
