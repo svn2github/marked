@@ -837,9 +837,7 @@ Parser.prototype.tok = function() {
     case 'heading': {
       return '<h'
         + this.token.depth
-        + ' id="'
-        + this.token.text.toLowerCase().replace(/\s/g, '-')
-        + '">'
+        + '>'
         + this.inline.output(this.token.text)
         + '</h'
         + this.token.depth
