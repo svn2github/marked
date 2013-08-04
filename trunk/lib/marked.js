@@ -17,7 +17,7 @@ var block = {
   hr: /^( *[-*_]){3,} *(?:\n+|$)/,
   heading: /^ *(#{1,6}) *([^\n]+?) *#* *(?:\n+|$)/,
   nptable: noop,
-  lheading: /^([^\n]+)\n *(=|-){2,} *\n*/,
+  lheading: /^([^\n]+)\n *(=|-){2,} *(?:\n+|$)/,
   blockquote: /^( *>[^\n]+(\n[^\n]+)*\n*)+/,
   list: /^( *)(bull) [\s\S]+?(?:hr|\n{2,}(?! )(?!\1bull )\n*|\s*$)/,
   html: /^ *(?:comment|closed|closing) *(?:\n{2,}|\s*$)/,
@@ -1029,7 +1029,7 @@ function marked(src, opt, callback) {
       opt = null;
     }
 
-    opt = opt ? merge({}, marked.defaults, opt) : marked.defaults; 
+    opt = opt ? merge({}, marked.defaults, opt) : marked.defaults;
 
     var highlight = opt.highlight
       , tokens
@@ -1044,12 +1044,8 @@ function marked(src, opt, callback) {
 
     pending = tokens.length;
 
-    var done = function(hi) {
+    var done = function() {
       var out, err;
-
-      if (hi !== true) {
-        delete opt.highlight;
-      }
 
       try {
         out = Parser.parse(tokens, opt);
@@ -1065,8 +1061,10 @@ function marked(src, opt, callback) {
     };
 
     if (!highlight || highlight.length < 3) {
-      return done(true);
+      return done();
     }
+
+    delete opt.highlight;
 
     if (!pending) return done();
 
