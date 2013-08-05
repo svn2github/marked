@@ -66,12 +66,12 @@ function runTests(engine, options) {
     , files = options.files || load()
     , complete = 0
     , failed = 0
+    , skipped = 0
     , keys = Object.keys(files)
     , i = 0
     , len = keys.length
     , filename
     , file
-    , flags
     , text
     , html
     , j
@@ -86,28 +86,16 @@ main:
     filename = keys[i];
     file = files[filename];
 
-    if (marked._original) {
-      marked.defaults = marked._original;
-      delete marked._original;
-    }
-
-    flags = filename.split('.').slice(1, -1);
-    if (flags.length) {
-      marked._original = marked.defaults;
-      marked.defaults = {};
-      Object.keys(marked._original).forEach(function(key) {
-        marked.defaults[key] = marked._original[key];
-      });
-      flags.forEach(function(key) {
-        var val = true;
-        if (key.indexOf('no') === 0) {
-          key = key.substring(2);
-          val = false;
-        }
-        if (marked.defaults.hasOwnProperty(key)) {
-          marked.defaults[key] = val;
-        }
-      });
+    if ((~filename.indexOf('.gfm.') && !marked.defaults.gfm)
+        || (~filename.indexOf('.tables.') && !marked.defaults.tables)
+        || (~filename.indexOf('.breaks.') && !marked.defaults.breaks)
+        || (~filename.indexOf('.pedantic.') && !marked.defaults.pedantic)
+        || (~filename.indexOf('.sanitize.') && !marked.defaults.sanitize)
+        || (~filename.indexOf('.smartlists.') && !marked.defaults.smartLists)
+        || (~filename.indexOf('.smartypants.') && !marked.defaults.smartypants)) {
+      skipped++;
+      console.log('#%d. %s skipped.', i + 1, filename);
+      continue main;
     }
 
     try {
@@ -154,6 +142,7 @@ main:
 
   console.log('%d/%d tests completed successfully.', complete, len);
   if (failed) console.log('%d/%d tests failed.', failed, len);
+  if (skipped) console.log('%d/%d tests skipped.', skipped, len);
 
   return !failed;
 }
@@ -330,11 +319,7 @@ function fix(options) {
 
   // cp -r original tests
   fs.readdirSync(path.resolve(__dirname, 'original')).forEach(function(file) {
-    var nfile = file;
-    if (file.indexOf('hard_wrapped_paragraphs_with_list_like_lines.') === 0) {
-      nfile = file.replace(/\.(text|html)$/, '.nogfm.$1');
-    }
-    fs.writeFileSync(path.resolve(__dirname, 'tests', nfile),
+    fs.writeFileSync(path.resolve(__dirname, 'tests', file),
       fs.readFileSync(path.resolve(__dirname, 'original', file)));
   });
 
