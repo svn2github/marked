@@ -20,7 +20,7 @@ var block = {
   lheading: /^([^\n]+)\n *(=|-){2,} *(?:\n+|$)/,
   blockquote: /^( *>[^\n]+(\n[^\n]+)*\n*)+/,
   list: /^( *)(bull) [\s\S]+?(?:hr|\n{2,}(?! )(?!\1bull )\n*|\s*$)/,
-  html: /^ *(?:comment|closed|closing) *(?:\n{2,}|\s*$)/,
+  html: /^ *(?:comment|close|open) *(?:\n*|\s*$)/,
   def: /^ *\[([^\]]+)\]: *<?([^\s>]+)>?(?: +["(]([^\n]+)[")])? *(?:\n+|$)/,
   table: noop,
   paragraph: /^((?:[^\n]+\n?(?!hr|heading|lheading|blockquote|tag|def))+)\n*/,
@@ -44,10 +44,14 @@ block._tag = '(?!(?:'
   + '|span|br|wbr|ins|del|img)\\b)\\w+(?!:/|@)\\b';
 
 block.html = replace(block.html)
-  ('comment', /<!--[\s\S]*?-->/)
-  ('closed', /<(tag)[\s\S]+?<\/\1>/)
-  ('closing', /<tag(?:"[^"]*"|'[^']*'|[^'">])*?>/)
+  ('comment', /<!--([\s\S]*?)-->/)
+  ('close', /<(\/)(tag)>/)
+  ('open', /<(tag)(?:"[^"]*"|'[^']*'|[^'">])*?>/)
   (/tag/g, block._tag)
+  ();
+
+block.innerHtml = replace(/^[\s\S]*?(?:html)/)
+  ('html', block.html)
   ();
 
 block.paragraph = replace(block.paragraph)
@@ -152,6 +156,10 @@ Lexer.prototype.token = function(src, top) {
     , space
     , i
     , l;
+
+  var out
+    , tag
+    , stack;
 
   while (src) {
     // newline
@@ -350,13 +358,46 @@ Lexer.prototype.token = function(src, top) {
     // html
     if (cap = this.rules.html.exec(src)) {
       src = src.substring(cap[0].length);
+
+      // Unexpected close tag.
+      if (cap[2]) continue;
+
+      // Comment or self-closing (potentially cache this).
+      if (cap[1] || (cap[4] && !~src.indexOf('</' + cap[4] + '>'))) {
+        this.tokens.push({
+          type: this.options.sanitize
+            ? 'paragraph'
+            : 'html',
+          text: cap[0]
+        });
+        continue;
+      }
+
+      out = cap[0];
+      tag = cap[4];
+      stack = [tag];
+
+      while (cap = this.rules.innerHtml.exec(src)) {
+        src = src.substring(cap[0].length);
+        out += cap[0];
+        if (cap[2]) {
+          if (stack[stack.length-1] === cap[3]) {
+            stack.pop();
+          }
+          if (!stack.length) break;
+        } else {
+          stack.push(cap[4]);
+        }
+      }
+
       this.tokens.push({
         type: this.options.sanitize
           ? 'paragraph'
           : 'html',
-        pre: cap[1] === 'pre' || cap[1] === 'script' || cap[1] === 'style',
-        text: cap[0]
+        pre: tag === 'pre' || tag === 'script' || tag === 'style',
+        text: out
       });
+
       continue;
     }
 
