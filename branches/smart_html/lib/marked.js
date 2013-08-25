@@ -356,6 +356,7 @@ Lexer.prototype.token = function(src, top) {
     }
 
     // html
+    // TODO: Have this account for things like <div>foo`</div>`.
     if (cap = this.rules.html.exec(src)) {
       src = src.substring(cap[0].length);
 
