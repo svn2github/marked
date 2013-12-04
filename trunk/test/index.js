@@ -66,7 +66,6 @@ function runTests(engine, options) {
     , files = options.files || load()
     , complete = 0
     , failed = 0
-    , failures = []
     , keys = Object.keys(files)
     , i = 0
     , len = keys.length
@@ -125,7 +124,6 @@ main:
     for (; j < l; j++) {
       if (text[j] !== html[j]) {
         failed++;
-        failures.push(filename);
 
         text = text.substring(
           Math.max(j - 30, 0),
@@ -156,13 +154,6 @@ main:
 
   console.log('%d/%d tests completed successfully.', complete, len);
   if (failed) console.log('%d/%d tests failed.', failed, len);
-
-  // Tests currently failing.
-  if (~failures.indexOf('def_blocks.text')
-      && ~failures.indexOf('double_link.text')
-      && ~failures.indexOf('gfm_code_hr_list.text')) {
-    failed -= 3;
-  }
 
   return !failed;
 }
