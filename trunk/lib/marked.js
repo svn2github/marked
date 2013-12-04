@@ -742,6 +742,7 @@ InlineLexer.prototype.mangle = function(text) {
 
 function Renderer(options) {
 }
+
 Renderer.prototype.blockcode = function(code, lang) {
   if (!lang) {
     return '<pre><code>' + escape(code, true) + '\n</code></pre>';
@@ -752,28 +753,36 @@ Renderer.prototype.blockcode = function(code, lang) {
     + escape(code)
     + '\n</code></pre>\n';
 };
+
 Renderer.prototype.blockquote = function(quote) {
   return '<blockquote>\n' + quote + '</blockquote>\n';
 };
+
 Renderer.prototype.blockhtml = function(html) {
   return html;
 };
+
 Renderer.prototype.header = function(text, level) {
   return '<h' + level + '>' + text + '</h' + level + '>\n';
 };
+
 Renderer.prototype.hrule = function() {
   return '<hr>\n';
 };
+
 Renderer.prototype.list = function(body, ordered) {
   var type = ordered ? 'ol' : 'ul';
   return '<' + type + '>\n' + body + '</' + type + '>\n';
 };
+
 Renderer.prototype.listitem = function(text) {
   return '<li>' + text + '</li>\n';
 };
+
 Renderer.prototype.paragraph = function(text) {
   return '<p>' + text + '</p>\n';
 };
+
 Renderer.prototype.table = function(header, body) {
   return '<table>\n'
     + '<thead>\n'
@@ -784,9 +793,11 @@ Renderer.prototype.table = function(header, body) {
     + '</tbody>\n'
     + '</table>\n';
 };
+
 Renderer.prototype.tablerow = function(content) {
   return '<tr>\n' + content + '</tr>\n';
 };
+
 Renderer.prototype.tablecell = function(content, flags) {
   var type = flags.header ? 'th' : 'td';
   var tag = flags.align
@@ -798,18 +809,23 @@ Renderer.prototype.tablecell = function(content, flags) {
 Renderer.prototype.strong = function(text) {
   return '<strong>' + text + '</strong>';
 };
+
 Renderer.prototype.emphasis = function(text) {
   return '<em>' + text + '</em>';
 };
+
 Renderer.prototype.codespan = function(text) {
   return '<code>' + text + '</code>';
 };
+
 Renderer.prototype.linebreak = function() {
   return '<br>';
 };
+
 Renderer.prototype.strikethrough = function(text) {
   return '<del>' + text + '</del>';
 };
+
 Renderer.prototype.link = function(href, title, text) {
   var out = '<a href="' + href + '"';
   if (title) {
@@ -818,6 +834,7 @@ Renderer.prototype.link = function(href, title, text) {
   out += '>' + text + '</a>';
   return out;
 };
+
 Renderer.prototype.image = function(href, title, text) {
   var out = '<img src="' + href + '" alt="' + text + '"';
   if (title) {
@@ -826,7 +843,6 @@ Renderer.prototype.image = function(href, title, text) {
   out += '>';
   return out;
 };
-
 
 /**
  * Parsing & Compiling
@@ -933,13 +949,11 @@ Parser.prototype.tok = function() {
       // header
       cell = '';
       for (i = 0; i < this.token.header.length; i++) {
-        // render cell
         flags = {header: true, align: this.token.align[i]};
         cell += renderer.tablecell(
           this.inline.output(this.token.header[i]),
           {header: true, align: this.token.align[i]}
         );
-        // render row
       }
       header += renderer.tablerow(cell);
 
@@ -964,6 +978,7 @@ Parser.prototype.tok = function() {
       while (this.next().type !== 'blockquote_end') {
         body += this.tok();
       }
+
       return renderer.blockquote(body);
     }
     case 'list_start': {
@@ -972,6 +987,7 @@ Parser.prototype.tok = function() {
       while (this.next().type !== 'list_end') {
         body += this.tok();
       }
+
       return renderer.list(body, ordered);
     }
     case 'list_item_start': {
@@ -982,6 +998,7 @@ Parser.prototype.tok = function() {
           ? this.parseText()
           : this.tok();
       }
+
       return renderer.listitem(body);
     }
     case 'loose_item_start': {
@@ -1055,6 +1072,7 @@ function merge(obj) {
   return obj;
 }
 
+
 /**
  * Marked
  */
@@ -1117,7 +1135,10 @@ marked.defaults = {
   sanitize: false,
   smartLists: false,
   silent: false,
-  smartypants: false
+  highlight: null,
+  langPrefix: 'lang-',
+  smartypants: false,
+  headerPrefix: ''
 };
 
 /**

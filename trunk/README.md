@@ -17,7 +17,7 @@ Minimal usage:
 
 ```js
 console.log(marked('I am using __markdown__.'));
-// Outputs: <p>I am using <i>markdown</i>.</p>
+// Outputs: <p>I am using <strong>markdown</strong>.</p>
 ```
 
 Example using all options:
@@ -79,6 +79,43 @@ Type: `Boolean`
 Default: `true`
 
 Enable [GitHub flavored markdown][gfm].
+
+### highlight
+
+Type: `Function`
+
+A function to highlight code blocks. The function takes three arguments: code,
+lang, and callback. The above example uses async highlighting with
+[node-pygmentize-bundled][pygmentize], and here is a synchronous example using
+[highlight.js][highlight] which doesn't require the callback argument:
+
+```js
+marked.setOptions({
+  highlight: function (code) {
+    return hljs.highlightAuto(code).value;
+  }
+});
+```
+
+#### highlight arguments
+
+`code`
+
+Type: `String`
+
+The section of code to pass to the highlighter.
+
+`lang`
+
+Type: `String`
+
+The programming language specified in the code block.
+
+`callback`
+
+Type: `Function`
+
+The callback function to call when using an async highlighter.
 
 ### tables
 
@@ -183,6 +220,13 @@ You can control anything you want.
 - link(href, title, text)
 - image(href, title, text)
 
+### headerPrefix
+
+Type: `String`
+Default: ``
+
+Set the prefix for header IDs.
+
 ## Access to lexer and parser
 
 You also have direct access to the lexer and parser if you so desire.
@@ -272,6 +316,62 @@ disadvantage in the benchmarks above.
 
 Along with implementing every markdown feature, marked also implements [GFM
 features][gfmf].
+
+### High level
+
+You can customize the result with a customized renderer.
+
+``` js
+var renderer = new marked.Renderer()
+
+renderer.header = function(text, level) {
+  return '<div class="h-' + level + '">' + text + '</div>'
+}
+
+var parse = function(src, options) {
+  options = options || {};
+  return marked.parser(marked.lexer(src, options), options, renderer);
+}
+
+console.log(parse('# h1'))
+```
+
+The renderer API:
+
+```
+blockcode: function(code, lang)
+blockquote: function(text)
+blockhtml: function(html)
+
+header: function(text, level)
+paragraph: function(text)
+
+hrule: function()
+
+list: function(contents, isOrdered)
+listitem: function(text)
+
+table: function(header, body)
+tablerow: function(content)
+tablecell: function(text, flags)
+// flags: {header: false, align: 'center'}
+```
+
+### Pro level
+
+You also have direct access to the lexer and parser if you so desire.
+
+``` js
+var tokens = marked.lexer(text, options);
+console.log(marked.parser(tokens));
+```
+
+``` js
+var lexer = new marked.Lexer(options);
+var tokens = lexer.lex(text);
+console.log(tokens);
+console.log(lexer.rules);
+```
 
 ``` bash
 $ node
