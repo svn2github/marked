@@ -272,13 +272,14 @@ You can customize the result with a customized renderer.
 ``` js
 var renderer = new marked.Renderer()
 
-renderer.header = function(text, level) {
+renderer.heading = function(text, level) {
   return '<div class="h-' + level + '">' + text + '</div>'
 }
 
 var parse = function(src, options) {
   options = options || {};
-  return marked.parser(marked.lexer(src, options), options, renderer);
+  options.renderer = renderer
+  return marked.parser(marked.lexer(src, options), options);
 }
 
 console.log(parse('# h1'))
@@ -360,9 +361,9 @@ node test
 
 ### Contribution and License Agreement
 
-If you contribute code to this project, you are implicitly allowing your code
-to be distributed under the MIT license. You are also implicitly verifying that
-all code is your original work. `</legalese>`
+If you contribute code to marked, you are implicitly allowing your code to be
+distributed under the MIT license. You are also implicitly verifying that all
+code is your original work. `</legalese>`
 
 ## License
 
