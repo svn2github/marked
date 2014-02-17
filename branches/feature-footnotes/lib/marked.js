@@ -18,10 +18,11 @@ var block = {
   heading: /^ *(#{1,6}) *([^\n]+?) *#* *(?:\n+|$)/,
   nptable: noop,
   lheading: /^([^\n]+)\n *(=|-){2,} *(?:\n+|$)/,
-  blockquote: /^( *>[^\n]+(\n(?!def)[^\n]+)*\n*)+/,
-  list: /^( *)(bull) [\s\S]+?(?:hr|def|\n{2,}(?! )(?!\1bull )\n*|\s*$)/,
+  blockquote: /^( *>[^\n]+(\n[^\n]+)*\n*)+/,
+  list: /^( *)(bull) [\s\S]+?(?:hr|\n{2,}(?! )(?!\1bull )\n*|\s*$)/,
   html: /^ *(?:comment|closed|closing) *(?:\n{2,}|\s*$)/,
-  def: /^ *\[([^\]]+)\]: *<?([^\s>]+)>?(?: +["(]([^\n]+)[")])? *(?:\n+|$)/,
+  def: /^ *\[([^^\]]+)\]: *<?([^\s>]+)>?(?: +["(]([^\n]+)[")])? *(?:\n+|$)/,
+  footnote: noop,
   table: noop,
   paragraph: /^((?:[^\n]+\n?(?!hr|heading|lheading|blockquote|tag|def))+)\n*/,
   text: /^[^\n]+/
@@ -35,12 +36,7 @@ block.item = replace(block.item, 'gm')
 
 block.list = replace(block.list)
   (/bull/g, block.bullet)
-  ('hr', '\\n+(?=\\1?(?:[-*_] *){3,}(?:\\n+|$))')
-  ('def', '\\n+(?=' + block.def.source + ')')
-  ();
-
-block.blockquote = replace(block.blockquote)
-  ('def', block.def)
+  ('hr', /\n+(?=(?: *[-*_]){3,} *(?:\n+|$))/)
   ();
 
 block._tag = '(?!(?:'
@@ -78,7 +74,6 @@ block.gfm = merge({}, block.normal, {
   fences: /^ *(`{3,}|~{3,}) *(\S+)? *\n([\s\S]+?)\s*\1 *(?:\n+|$)/,
   paragraph: /^/
 });
-
 block.gfm.paragraph = replace(block.paragraph)
   ('(?!', '(?!'
     + block.gfm.fences.source.replace('\\1', '\\2') + '|'
@@ -86,13 +81,32 @@ block.gfm.paragraph = replace(block.paragraph)
   ();
 
 /**
- * GFM + Tables Block Grammar
+ * Tables Block Grammar
  */
 
-block.tables = merge({}, block.gfm, {
+block.tables = {
   nptable: /^ *(\S.*\|.*)\n *([-:]+ *\|[-| :]*)\n((?:.*\|.*(?:\n|$))*)\n*/,
   table: /^ *\|(.+)\n *\|( *[-:]+[-| :]*)\n((?: *\|.*(?:\n|$))*)\n*/
-});
+};
+
+/**
+ * Footnotes Block Grammar
+ */
+block.footnotes = {
+  footnote: /^\[(\^[^\]]+)\]: *([^\n]*(?:\n [^\n]*)*)/,
+};
+block.footnotes.normal = {
+  footnote: block.footnotes.footnote
+};
+block.footnotes.normal.paragraph = replace(block.paragraph)(
+  '))+)', '|' + block.footnotes.footnote.source + '))+)'
+)();
+block.footnotes.gfm = {
+  footnote: block.footnotes.footnote
+};
+block.footnotes.gfm.paragraph = replace(block.gfm.paragraph)(
+  '))+)', '|' + block.footnotes.footnote.source + '))+)'
+)();
 
 /**
  * Block Lexer
@@ -101,15 +115,21 @@ block.tables = merge({}, block.gfm, {
 function Lexer(options) {
   this.tokens = [];
   this.tokens.links = {};
+  this.tokens.footnotes = [];
   this.options = options || marked.defaults;
   this.rules = block.normal;
 
   if (this.options.gfm) {
-    if (this.options.tables) {
-      this.rules = block.tables;
-    } else {
-      this.rules = block.gfm;
+    this.rules = block.gfm;
+    if (this.options.footnotes) {
+      this.rules = merge({}, this.rules, block.footnotes.gfm);
     }
+  } else if (this.options.footnotes) {
+    this.rules = merge({}, this.rules, block.footnotes.normal);
+  }
+
+  if (this.options.tables) {
+    this.rules = merge({}, this.rules, block.tables);
   }
 }
 
@@ -146,9 +166,10 @@ Lexer.prototype.lex = function(src) {
  * Lexing
  */
 
-Lexer.prototype.token = function(src, top, bq) {
+Lexer.prototype.token = function(src, top) {
   var src = src.replace(/^ +$/gm, '')
     , next
+    , key
     , loose
     , cap
     , bull
@@ -269,7 +290,7 @@ Lexer.prototype.token = function(src, top, bq) {
       // Pass `top` to keep the current
       // "toplevel" state. This is exactly
       // how markdown.pl works.
-      this.token(cap, top, true);
+      this.token(cap, top);
 
       this.tokens.push({
         type: 'blockquote_end'
@@ -338,7 +359,7 @@ Lexer.prototype.token = function(src, top, bq) {
         });
 
         // Recurse.
-        this.token(item, false, bq);
+        this.token(item, false);
 
         this.tokens.push({
           type: 'list_item_end'
@@ -366,12 +387,21 @@ Lexer.prototype.token = function(src, top, bq) {
     }
 
     // def
-    if ((!bq && top) && (cap = this.rules.def.exec(src))) {
+    if (top && (cap = this.rules.def.exec(src))) {
       src = src.substring(cap[0].length);
       this.tokens.links[cap[1].toLowerCase()] = {
         href: cap[2],
         title: cap[3]
       };
+      continue;
+    }
+
+    // footnote
+    if (top && (cap = this.rules.footnote.exec(src))) {
+      src = src.substring(cap[0].length);
+      key = cap[1].toLowerCase();
+      this.tokens.footnotes.push({key: key, text: cap[2]});
+      this.tokens.footnotes[key] = {text: cap[2], count: this.tokens.footnotes.length};
       continue;
     }
 
@@ -458,10 +488,11 @@ var inline = {
   code: /^(`+)\s*([\s\S]*?[^`])\s*\1(?!`)/,
   br: /^ {2,}\n(?!\s*$)/,
   del: noop,
+  footnote: noop,
   text: /^[\s\S]+?(?=[\\<!\[_*`]| {2,}\n|$)/
 };
 
-inline._inside = /(?:\[[^\]]*\]|[^\[\]]|\](?=[^\[]*\]))*/;
+inline._inside = /(?:\[[^^\]]*\]|[^\[\]]|\](?=[^\[]*\]))*/;
 inline._href = /\s*<?([\s\S]*?)>?(?:\s+['"]([\s\S]*?)['"])?\s*/;
 
 inline.link = replace(inline.link)
@@ -483,10 +514,10 @@ inline.normal = merge({}, inline);
  * Pedantic Inline Grammar
  */
 
-inline.pedantic = merge({}, inline.normal, {
+inline.pedantic = {
   strong: /^__(?=\S)([\s\S]*?\S)__(?!_)|^\*\*(?=\S)([\s\S]*?\S)\*\*(?!\*)/,
   em: /^_(?=\S)([\s\S]*?\S)_(?!_)|^\*(?=\S)([\s\S]*?\S)\*(?!\*)/
-});
+};
 
 /**
  * GFM Inline Grammar
@@ -512,12 +543,21 @@ inline.breaks = merge({}, inline.gfm, {
 });
 
 /**
+ * Footnote Inline Grammar
+ */
+
+inline.footnote = {
+  footnote: /^\[\^([^\]]+)\]/
+};
+
+/**
  * Inline Lexer & Compiler
  */
 
-function InlineLexer(links, options) {
+function InlineLexer(links, footnotes, options) {
   this.options = options || marked.defaults;
   this.links = links;
+  this.footnotes = footnotes || {};
   this.rules = inline.normal;
   this.renderer = this.options.renderer || new Renderer;
   this.renderer.options = this.options;
@@ -533,8 +573,14 @@ function InlineLexer(links, options) {
     } else {
       this.rules = inline.gfm;
     }
-  } else if (this.options.pedantic) {
-    this.rules = inline.pedantic;
+  }
+
+  if (this.options.footnote) {
+    this.rules = merge({}, this.rules, inline.footnote);
+  }
+
+  if (this.options.pedantic) {
+    this.rules = merge({}, this.rules, inline.pedantic);
   }
 }
 
@@ -548,8 +594,8 @@ InlineLexer.rules = inline;
  * Static Lexing/Compiling Method
  */
 
-InlineLexer.output = function(src, links, options) {
-  var inline = new InlineLexer(links, options);
+InlineLexer.output = function(src, links, footnotes, options) {
+  var inline = new InlineLexer(links, footnotes, options);
   return inline.output(src);
 };
 
@@ -560,6 +606,8 @@ InlineLexer.output = function(src, links, options) {
 InlineLexer.prototype.output = function(src) {
   var out = ''
     , link
+    , key
+    , ret
     , text
     , href
     , cap;
@@ -589,7 +637,7 @@ InlineLexer.prototype.output = function(src) {
     }
 
     // url (gfm)
-    if (!this.inLink && (cap = this.rules.url.exec(src))) {
+    if (cap = this.rules.url.exec(src)) {
       src = src.substring(cap[0].length);
       text = escape(cap[1]);
       href = text;
@@ -599,11 +647,6 @@ InlineLexer.prototype.output = function(src) {
 
     // tag
     if (cap = this.rules.tag.exec(src)) {
-      if (!this.inLink && /^<a /i.test(cap[0])) {
-        this.inLink = true;
-      } else if (this.inLink && /^<\/a>/i.test(cap[0])) {
-        this.inLink = false;
-      }
       src = src.substring(cap[0].length);
       out += this.options.sanitize
         ? escape(cap[0])
@@ -614,12 +657,10 @@ InlineLexer.prototype.output = function(src) {
     // link
     if (cap = this.rules.link.exec(src)) {
       src = src.substring(cap[0].length);
-      this.inLink = true;
       out += this.outputLink(cap, {
         href: cap[2],
         title: cap[3]
       });
-      this.inLink = false;
       continue;
     }
 
@@ -634,9 +675,17 @@ InlineLexer.prototype.output = function(src) {
         src = cap[0].substring(1) + src;
         continue;
       }
-      this.inLink = true;
       out += this.outputLink(cap, link);
-      this.inLink = false;
+      continue;
+    }
+
+    // footnote
+    if (cap = this.rules.footnote.exec(src)) {
+      key = cap[1].toLowerCase();
+      if (ret = this.footnotes[key]) {
+        src = src.substring(cap[0].length);
+        out += this.renderer.footnoteref(key, ret.count);
+      }
       continue;
     }
 
@@ -889,6 +938,23 @@ Renderer.prototype.image = function(href, title, text) {
   return out;
 };
 
+Renderer.prototype.footnoteref = function(key, count) {
+  var out = '<sup class="footnote-ref" id="fnref-' + escape(key) + '">';
+  out += count + '</sup>';
+  return out;
+};
+
+Renderer.prototype.footnotes = function(notes) {
+  var out = '<ol class="footnotes">';
+  for (var i = 0; i < notes.length; i++) {
+    out += '<li id="fn-' + escape(notes[i].key) + '">';
+    out += notes[i].text;
+    out += '</li>';
+  }
+  out += '</ol>';
+  return out;
+};
+
 /**
  * Parsing & Compiling
  */
@@ -916,12 +982,16 @@ Parser.parse = function(src, options, renderer) {
  */
 
 Parser.prototype.parse = function(src) {
-  this.inline = new InlineLexer(src.links, this.options, this.renderer);
+  this.inline = new InlineLexer(src.links, src.footnotes, this.options);
   this.tokens = src.reverse();
 
   var out = '';
   while (this.next()) {
     out += this.tok();
+  }
+
+  if (src.footnotes.length) {
+    out += this.renderer.footnotes(src.footnotes);
   }
 
   return out;
@@ -1223,6 +1293,7 @@ marked.setOptions = function(opt) {
 marked.defaults = {
   gfm: true,
   tables: true,
+  footnotes: false,
   breaks: false,
   pedantic: false,
   sanitize: false,
