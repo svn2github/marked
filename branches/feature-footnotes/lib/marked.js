@@ -79,6 +79,7 @@ block.gfm = merge({}, block.normal, {
   fences: /^ *(`{3,}|~{3,}) *(\S+)? *\n([\s\S]+?)\s*\1 *(?:\n+|$)/,
   paragraph: /^/
 });
+
 block.gfm.paragraph = replace(block.paragraph)
   ('(?!', '(?!'
     + block.gfm.fences.source.replace('\\1', '\\2') + '|'
@@ -97,21 +98,26 @@ block.tables = {
 /**
  * Footnotes Block Grammar
  */
+
 block.footnotes = {
   footnote: /^\[\^([^\]]+)\]: *([^\n]*(?:\n+|$)(?: {1,}[^\n]*(?:\n+|$))*)/
 };
+
 block.footnotes.normal = {
   footnote: block.footnotes.footnote
 };
-block.footnotes.normal.paragraph = replace(block.paragraph)(
-  '))+)', '|' + block.footnotes.footnote.source + '))+)'
-)();
+
+block.footnotes.normal.paragraph = replace(block.paragraph)
+  ('))+)', '|' + block.footnotes.footnote.source + '))+)')
+  ();
+
 block.footnotes.gfm = {
   footnote: block.footnotes.footnote
 };
-block.footnotes.gfm.paragraph = replace(block.gfm.paragraph)(
-  '))+)', '|' + block.footnotes.footnote.source + '))+)'
-)();
+
+block.footnotes.gfm.paragraph = replace(block.gfm.paragraph)
+  ('))+)', '|' + block.footnotes.footnote.source + '))+)')
+  ();
 
 /**
  * Block Lexer
@@ -404,9 +410,15 @@ Lexer.prototype.token = function(src, top, bq) {
     // footnote
     if (top && (cap = this.rules.footnote.exec(src))) {
       src = src.substring(cap[0].length);
-      key = cap[1].slice(1).toLowerCase();
-      this.tokens.footnotes.push({key: key, text: cap[2]});
-      this.tokens.footnotes[key] = {text: cap[2], count: this.tokens.footnotes.length};
+      key = cap[1].toLowerCase();
+      this.tokens.footnotes.push({
+        key: key,
+        text: cap[2]
+      });
+      this.tokens.footnotes['_' + key] = {
+        text: cap[2],
+        count: this.tokens.footnotes.length
+      };
       continue;
     }
 
@@ -485,6 +497,7 @@ var inline = {
   autolink: /^<([^ >]+(@|:\/)[^ >]+)>/,
   url: noop,
   tag: /^<!--[\s\S]*?-->|^<\/?\w+(?:"[^"]*"|'[^']*'|[^'">])*?>/,
+  footnote: noop,
   link: /^!?\[(inside)\]\(href\)/,
   reflink: /^!?\[(inside)\]\s*\[([^\]]*)\]/,
   nolink: /^!?\[((?:\[[^\]]*\]|[^\[\]])*)\]/,
@@ -493,7 +506,6 @@ var inline = {
   code: /^(`+)\s*([\s\S]*?[^`])\s*\1(?!`)/,
   br: /^ {2,}\n(?!\s*$)/,
   del: noop,
-  footnote: noop,
   text: /^[\s\S]+?(?=[\\<!\[_*`]| {2,}\n|$)/
 };
 
@@ -552,7 +564,7 @@ inline.breaks = merge({}, inline.gfm, {
  */
 
 inline.footnote = {
-  footnote: /^\[\^([^\]]+)\]/
+  footnote: /^ *\[\^([^\]]+)\]/
 };
 
 /**
@@ -667,7 +679,7 @@ InlineLexer.prototype.output = function(src) {
     // footnote
     if (cap = this.rules.footnote.exec(src)) {
       key = cap[1].toLowerCase();
-      if (ret = this.footnotes[key]) {
+      if (ret = this.footnotes['_' + key]) {
         src = src.substring(cap[0].length);
         out += this.renderer.footnoteref(key, ret.count);
         continue;
@@ -1186,7 +1198,7 @@ function replace(regex, opt) {
   return function self(name, val) {
     if (!name) return new RegExp(regex, opt);
     val = val.source || val;
-    val = val.replace(/(^|[^\[])\^/g, '$1');
+    val = val.replace(/(^|[^\[\\])\^/g, '$1');
     regex = regex.replace(name, val);
     return self;
   };
