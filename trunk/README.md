@@ -39,26 +39,6 @@ marked.setOptions({
 console.log(marked('I am using __markdown__.'));
 ```
 
-### Browser
-
-```html
-<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8"/>
-  <title>Marked in the browser</title>
-  <script src="lib/marked.js"></script>
-</head>
-<body>
-  <div id="content"></div>
-  <script>
-    document.getElementById('content').innerHTML =
-      marked('# Marked in browser\n\nRendered by **marked**.');
-  </script>
-</body>
-</html>
-```
-
 ## marked(markdownString [,options] [,callback])
 
 ### markdownString
@@ -151,7 +131,7 @@ An object containing functions to render tokens to HTML.
 
 #### Overriding renderer methods
 
-The renderer option allows you to render tokens in a custom manner. Here is an
+The renderer option allows you to render tokens in a custom manor. Here is an
 example of overriding the default heading token rendering by adding an embedded anchor tag like on GitHub:
 
 ```javascript
@@ -265,7 +245,7 @@ default with the old behavior moved into `pedantic`.
 Type: `boolean`
 Default: `false`
 
-Use "smart" typographic punctuation for things like quotes and dashes.
+Use "smart" typograhic punctuation for things like quotes and dashes.
 
 ## Access to lexer and parser
 
@@ -297,7 +277,7 @@ $ cat hello.html
 
 The point of marked was to create a markdown compiler where it was possible to
 frequently parse huge chunks of markdown without having to worry about
-caching the compiled output somehow...or blocking for an unnecessarily long time.
+caching the compiled output somehow...or blocking for an unnecesarily long time.
 
 marked is very concise and still implements all markdown features. It is also
 now fully compatible with the client-side.
