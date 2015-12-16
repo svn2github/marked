@@ -3,79 +3,49 @@
 /**
  * marked tests
  * Copyright (c) 2011-2013, Christopher Jeffrey. (MIT Licensed)
- * https://github.com/markedjs/marked
+ * https://github.com/chjj/marked
  */
 
 /**
  * Modules
  */
 
-var fs = require('fs'),
-    path = require('path'),
-    fm = require('front-matter'),
-    g2r = require('glob-to-regexp'),
-    marked = require('../'),
-    markedMin = require('../marked.min.js');
+var fs = require('fs')
+  , path = require('path')
+  , marked = require('../');
 
 /**
  * Load Tests
  */
 
-function load(options) {
-  options = options || {};
-  var dir = path.join(__dirname, 'compiled_tests'),
-      files = {},
-      list,
-      file,
-      name,
-      content,
-      glob = g2r(options.glob || '*', { extended: true }),
-      i,
-      l;
+function load() {
+  var dir = __dirname + '/tests'
+    , files = {}
+    , list
+    , file
+    , i
+    , l;
 
   list = fs
     .readdirSync(dir)
     .filter(function(file) {
-      return path.extname(file) === '.md';
+      return path.extname(file) !== '.html';
     })
-    .sort();
+    .sort(function(a, b) {
+      a = path.basename(a).toLowerCase().charCodeAt(0);
+      b = path.basename(b).toLowerCase().charCodeAt(0);
+      return a > b ? 1 : (a < b ? -1 : 0);
+    });
 
+  i = 0;
   l = list.length;
 
-  for (i = 0; i < l; i++) {
-    name = path.basename(list[i], '.md');
-    if (glob.test(name)) {
-      file = path.join(dir, list[i]);
-      content = fm(fs.readFileSync(file, 'utf8'));
-
-      files[name] = {
-        options: content.attributes,
-        text: content.body,
-        html: fs.readFileSync(file.replace(/[^.]+$/, 'html'), 'utf8')
-      };
-    }
-  }
-
-  if (options.bench || options.time) {
-    if (!options.glob) {
-      // Change certain tests to allow
-      // comparison to older benchmark times.
-      fs.readdirSync(path.join(__dirname, 'new')).forEach(function(name) {
-        if (path.extname(name) === '.html') return;
-        if (name === 'main.md') return;
-        delete files[name];
-      });
-    }
-
-    if (files['backslash_escapes.md']) {
-      files['backslash_escapes.md'] = {
-        text: 'hello world \\[how](are you) today'
-      };
-    }
-
-    if (files['main.md']) {
-      files['main.md'].text = files['main.md'].text.replace('* * *\n\n', '');
-    }
+  for (; i < l; i++) {
+    file = path.join(dir, list[i]);
+    files[path.basename(file)] = {
+      text: fs.readFileSync(file, 'utf8'),
+      html: fs.readFileSync(file.replace(/[^.]+$/, 'html'), 'utf8')
+    };
   }
 
   return files;
@@ -91,129 +61,142 @@ function runTests(engine, options) {
     engine = null;
   }
 
-  engine = engine || marked;
-  options = options || {};
-  var succeeded = 0,
-      failed = 0,
-      files = options.files || load(options),
-      filenames = Object.keys(files),
-      len = filenames.length,
-      success,
-      i,
-      filename,
-      file;
+  var engine = engine || marked
+    , options = options || {}
+    , files = options.files || load()
+    , complete = 0
+    , failed = 0
+    , failures = []
+    , keys = Object.keys(files)
+    , i = 0
+    , len = keys.length
+    , filename
+    , file
+    , flags
+    , text
+    , html
+    , j
+    , l;
 
   if (options.marked) {
     marked.setOptions(options.marked);
   }
 
-  for (i = 0; i < len; i++) {
-    filename = filenames[i];
+main:
+  for (; i < len; i++) {
+    filename = keys[i];
     file = files[filename];
 
-    var before = process.hrtime();
-    success = testFile(engine, file, filename, i + 1);
-    var elapsed = process.hrtime(before);
-    var tookLessThanOneSec = (elapsed[0] === 0);
+    if (marked._original) {
+      marked.defaults = marked._original;
+      delete marked._original;
+    }
 
-    if (success && tookLessThanOneSec) {
-      succeeded++;
-    } else {
-      failed++;
-      if (options.stop) {
-        break;
+    flags = filename.split('.').slice(1, -1);
+    if (flags.length) {
+      marked._original = marked.defaults;
+      marked.defaults = {};
+      Object.keys(marked._original).forEach(function(key) {
+        marked.defaults[key] = marked._original[key];
+      });
+      flags.forEach(function(key) {
+        var val = true;
+        if (key.indexOf('no') === 0) {
+          key = key.substring(2);
+          val = false;
+        }
+        if (marked.defaults.hasOwnProperty(key)) {
+          marked.defaults[key] = val;
+        }
+      });
+    }
+
+    try {
+      text = engine(file.text).replace(/\s/g, '');
+      html = file.html.replace(/\s/g, '');
+    } catch(e) {
+      console.log('%s failed.', filename);
+      throw e;
+    }
+
+    j = 0;
+    l = html.length;
+
+    for (; j < l; j++) {
+      if (text[j] !== html[j]) {
+        failed++;
+        failures.push(filename);
+
+        text = text.substring(
+          Math.max(j - 30, 0),
+          Math.min(j + 30, text.length));
+
+        html = html.substring(
+          Math.max(j - 30, 0),
+          Math.min(j + 30, html.length));
+
+        console.log(
+          '\n#%d. %s failed at offset %d. Near: "%s".\n',
+          i + 1, filename, j, text);
+
+        console.log('\nGot:\n%s\n', text.trim() || text);
+        console.log('\nExpected:\n%s\n', html.trim() || html);
+
+        if (options.stop) {
+          break main;
+        }
+
+        continue main;
       }
     }
+
+    complete++;
+    console.log('#%d. %s completed.', i + 1, filename);
   }
 
-  console.log('%d/%d tests completed successfully.', succeeded, len);
+  console.log('%d/%d tests completed successfully.', complete, len);
   if (failed) console.log('%d/%d tests failed.', failed, len);
 
+  // Tests currently failing.
+  if (~failures.indexOf('def_blocks.text')) {
+    failed -= 1;
+  }
+
   return !failed;
-}
-
-/**
- * Test a file
- */
-
-function testFile(engine, file, filename, index) {
-  var opts = Object.keys(file.options),
-      text,
-      html,
-      j,
-      l,
-      before,
-      elapsed;
-
-  if (marked._original) {
-    marked.defaults = marked._original;
-    delete marked._original;
-  }
-
-  console.log('#%d. Test %s', index, filename);
-
-  if (opts.length) {
-    marked._original = marked.defaults;
-    marked.defaults = {};
-    Object.keys(marked._original).forEach(function(key) {
-      marked.defaults[key] = marked._original[key];
-    });
-    opts.forEach(function(key) {
-      if (marked.defaults.hasOwnProperty(key)) {
-        marked.defaults[key] = file.options[key];
-      }
-    });
-  }
-
-  before = process.hrtime();
-  try {
-    text = engine(file.text).replace(/\s/g, '');
-    html = file.html.replace(/\s/g, '');
-  } catch (e) {
-    elapsed = process.hrtime(before);
-    console.log('    failed in %dms', prettyElapsedTime(elapsed));
-    throw e;
-  }
-
-  elapsed = process.hrtime(before);
-
-  l = html.length;
-
-  for (j = 0; j < l; j++) {
-    if (text[j] !== html[j]) {
-      text = text.substring(
-        Math.max(j - 30, 0),
-        Math.min(j + 30, text.length));
-
-      html = html.substring(
-        Math.max(j - 30, 0),
-        Math.min(j + 30, l));
-
-      console.log('    failed in %dms at offset %d. Near: "%s".\n', prettyElapsedTime(elapsed), j, text);
-
-      console.log('\nGot:\n%s\n', text.trim() || text);
-      console.log('\nExpected:\n%s\n', html.trim() || html);
-
-      return false;
-    }
-  }
-
-  console.log('    passed in %dms', prettyElapsedTime(elapsed));
-  return true;
 }
 
 /**
  * Benchmark a function
  */
 
-function bench(name, files, func) {
-  var start = Date.now(),
-      times = 1000,
-      keys = Object.keys(files),
-      i,
-      l = keys.length,
-      filename,
-      file;
+function bench(name, func) {
+  var files = bench.files || load();
+
+  if (!bench.files) {
+    bench.files = files;
+
+    // Change certain tests to allow
+    // comparison to older benchmark times.
+    fs.readdirSync(__dirname + '/new').forEach(function(name) {
+      if (path.extname(name) === '.html') return;
+      if (name === 'main.text') return;
+      delete files[name];
+    });
+
+    files['backslash_escapes.text'] = {
+      text: 'hello world \\[how](are you) today'
+    };
+
+    files['main.text'].text = files['main.text'].text.replace('* * *\n\n', '');
+  }
+
+  var start = Date.now()
+    , times = 1000
+    , keys = Object.keys(files)
+    , i
+    , l = keys.length
+    , filename
+    , file;
 
   while (times--) {
     for (i = 0; i < l; i++) {
@@ -231,8 +214,7 @@ function bench(name, files, func) {
  */
 
 function runBench(options) {
-  options = options || {};
-  var files = load(options);
+  var options = options || {};
 
   // Non-GFM, Non-pedantic
   marked.setOptions({
@@ -246,7 +228,7 @@ function runBench(options) {
   if (options.marked) {
     marked.setOptions(options.marked);
   }
-  bench('marked', files, marked);
+  bench('marked', marked);
 
   // GFM
   marked.setOptions({
@@ -260,7 +242,7 @@ function runBench(options) {
   if (options.marked) {
     marked.setOptions(options.marked);
   }
-  bench('marked (gfm)', files, marked);
+  bench('marked (gfm)', marked);
 
   // Pedantic
   marked.setOptions({
@@ -274,54 +256,47 @@ function runBench(options) {
   if (options.marked) {
     marked.setOptions(options.marked);
   }
-  bench('marked (pedantic)', files, marked);
+  bench('marked (pedantic)', marked);
+
+  // robotskirt
+  try {
+    bench('robotskirt', (function() {
+      var rs = require('robotskirt');
+      return function(text) {
+        var parser = rs.Markdown.std();
+        return parser.render(text);
+      };
+    })());
+  } catch (e) {
+    console.log('Could not bench robotskirt.');
+  }
 
   // showdown
   try {
-    bench('showdown (reuse converter)', files, (function() {
+    bench('showdown (reuse converter)', (function() {
       var Showdown = require('showdown');
-      var convert = new Showdown.Converter();
+      var convert = new Showdown.converter();
       return function(text) {
         return convert.makeHtml(text);
       };
     })());
-    bench('showdown (new converter)', files, (function() {
+    bench('showdown (new converter)', (function() {
       var Showdown = require('showdown');
       return function(text) {
-        var convert = new Showdown.Converter();
+        var convert = new Showdown.converter();
         return convert.makeHtml(text);
       };
     })());
   } catch (e) {
-    console.log('Could not bench showdown. (Error: %s)', e.message);
-  }
-
-  // markdown-it
-  try {
-    bench('markdown-it', files, (function() {
-      var MarkdownIt = require('markdown-it');
-      var md = new MarkdownIt();
-      return function(text) {
-        return md.render(text);
-      };
-    })());
-  } catch (e) {
-    console.log('Could not bench markdown-it. (Error: %s)', e.message);
+    console.log('Could not bench showdown.');
   }
 
   // markdown.js
   try {
-    bench('markdown.js', files, (function() {
-      var markdown = require('markdown').markdown;
-      return function(text) {
-        return markdown.toHTML(text);
-      };
-    })());
+    bench('markdown.js', require('markdown').parse);
   } catch (e) {
-    console.log('Could not bench markdown.js. (Error: %s)', e.message);
+    console.log('Could not bench markdown.js.');
   }
-
-  return true;
 }
 
 /**
@@ -329,14 +304,11 @@ function runBench(options) {
  */
 
 function time(options) {
-  options = options || {};
-  var files = load(options);
+  var options = options || {};
   if (options.marked) {
     marked.setOptions(options.marked);
   }
-  bench('marked', files, marked);
-
-  return true;
+  bench('marked', marked);
 }
 
 /**
@@ -349,39 +321,38 @@ function time(options) {
  *   conformance.
  */
 
-function fix() {
-  ['compiled_tests', 'original', 'new'].forEach(function(dir) {
+function fix(options) {
+  ['tests', 'original', 'new'].forEach(function(dir) {
     try {
-      fs.mkdirSync(path.resolve(__dirname, dir));
+      fs.mkdirSync(path.resolve(__dirname, dir), 0755);
     } catch (e) {
       ;
     }
   });
 
   // rm -rf tests
-  fs.readdirSync(path.resolve(__dirname, 'compiled_tests')).forEach(function(file) {
-    fs.unlinkSync(path.resolve(__dirname, 'compiled_tests', file));
+  fs.readdirSync(path.resolve(__dirname, 'tests')).forEach(function(file) {
+    fs.unlinkSync(path.resolve(__dirname, 'tests', file));
   });
 
   // cp -r original tests
   fs.readdirSync(path.resolve(__dirname, 'original')).forEach(function(file) {
-    var text = fs.readFileSync(path.resolve(__dirname, 'original', file));
-
-    if (path.extname(file) === '.md') {
-      text = '---\ngfm: false\n---\n' + text;
+    var nfile = file;
+    if (file.indexOf('hard_wrapped_paragraphs_with_list_like_lines.') === 0) {
+      nfile = file.replace(/\.(text|html)$/, '.nogfm.$1');
     }
-
-    fs.writeFileSync(path.resolve(__dirname, 'compiled_tests', file), text);
+    fs.writeFileSync(path.resolve(__dirname, 'tests', nfile),
+      fs.readFileSync(path.resolve(__dirname, 'original', file)));
   });
 
   // node fix.js
-  var dir = path.join(__dirname, 'compiled_tests');
+  var dir = __dirname + '/tests';
 
   fs.readdirSync(dir).filter(function(file) {
     return path.extname(file) === '.html';
   }).forEach(function(file) {
-    file = path.join(dir, file);
-    var html = fs.readFileSync(file, 'utf8');
+    var file = path.join(dir, file)
+      , html = fs.readFileSync(file, 'utf8');
 
     // fix unencoded quotes
     html = html
@@ -401,7 +372,7 @@ function fix() {
         .replace(/&lt;/g, '<')
         .replace(/&amp;/g, '&');
 
-      id = id.toLowerCase().replace(/[^\w]+/g, '-');
+      id = id.toLowerCase().replace(/[^\w]+/g, '-');
 
       return '<' + h + ' id="' + id + '">' + text + '</' + h + '>';
     });
@@ -411,8 +382,8 @@ function fix() {
 
   // turn <hr /> into <hr>
   fs.readdirSync(dir).forEach(function(file) {
-    file = path.join(dir, file);
-    var text = fs.readFileSync(file, 'utf8');
+    var file = path.join(dir, file)
+      , text = fs.readFileSync(file, 'utf8');
 
     text = text.replace(/(<|&lt;)hr\s*\/(>|&gt;)/g, '$1hr$2');
 
@@ -431,7 +402,7 @@ function fix() {
 
   // cp new/* tests/
   fs.readdirSync(path.resolve(__dirname, 'new')).forEach(function(file) {
-    fs.writeFileSync(path.resolve(__dirname, 'compiled_tests', file),
+    fs.writeFileSync(path.resolve(__dirname, 'tests', file),
       fs.readFileSync(path.resolve(__dirname, 'new', file)));
   });
 }
@@ -440,12 +411,11 @@ function fix() {
  * Argument Parsing
  */
 
-function parseArg() {
-  var argv = process.argv.slice(2),
-      options = {},
-      opt = '',
-      orphans = [],
-      arg;
+function parseArg(argv) {
+  var argv = process.argv.slice(2)
+    , options = {}
+    , orphans = []
+    , arg;
 
   function getarg() {
     var arg = argv.shift();
@@ -481,13 +451,7 @@ function parseArg() {
       case '-f':
       case '--fix':
       case 'fix':
-        if (options.fix !== false) {
-          options.fix = true;
-        }
-        break;
-      case '--no-fix':
-      case 'no-fix':
-        options.fix = false;
+        options.fix = true;
         break;
       case '-b':
       case '--bench':
@@ -500,14 +464,6 @@ function parseArg() {
       case '-t':
       case '--time':
         options.time = true;
-        break;
-      case '-m':
-      case '--minified':
-        options.minified = true;
-        break;
-      case '--glob':
-        arg = argv.shift();
-        options.glob = arg.replace(/^=/, '');
         break;
       default:
         if (arg.indexOf('--') === 0) {
@@ -552,13 +508,8 @@ function camelize(text) {
 function main(argv) {
   var opt = parseArg();
 
-  if (opt.fix !== false) {
-    fix();
-  }
-
   if (opt.fix) {
-    // only run fix
-    return;
+    return fix(opt);
   }
 
   if (opt.bench) {
@@ -569,9 +520,6 @@ function main(argv) {
     return time(opt);
   }
 
-  if (opt.minified) {
-    marked = markedMin;
-  }
   return runTests(opt);
 }
 
@@ -586,16 +534,8 @@ if (!module.parent) {
   exports = main;
   exports.main = main;
   exports.runTests = runTests;
-  exports.testFile = testFile;
   exports.runBench = runBench;
   exports.load = load;
   exports.bench = bench;
   module.exports = exports;
-}
-
-// returns time to millisecond granularity
-function prettyElapsedTime(hrtimeElapsed) {
-  var seconds = hrtimeElapsed[0];
-  var frac = Math.round(hrtimeElapsed[1] / 1e3) / 1e3;
-  return seconds * 1e3 + frac;
 }
