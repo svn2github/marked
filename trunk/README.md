@@ -3,7 +3,7 @@
 > A full-featured markdown parser and compiler, written in JavaScript. Built
 > for speed.
 
-[![NPM version](https://badge.fury.io/js/marked.svg)][badge]
+[![NPM version](https://badge.fury.io/js/marked.png)][badge]
 
 ## Install
 
@@ -11,6 +11,12 @@
 npm install marked --save
 ```
 
+or if you want to use the `marked` CLI tool:
+ 
+``` bash
+npm install -g marked
+```
+ 
 ## Usage
 
 Minimal usage:
@@ -31,7 +37,7 @@ marked.setOptions({
   tables: true,
   breaks: false,
   pedantic: false,
-  sanitize: false,
+  sanitize: true,
   smartLists: true,
   smartypants: false
 });
@@ -167,7 +173,7 @@ renderer.heading = function (text, level) {
                  escapedText +
                  '"><span class="header-link"></span></a>' +
                   text + '</h' + level + '>';
-};
+},
 
 console.log(marked('# heading+', { renderer: renderer }));
 ```
@@ -265,7 +271,7 @@ default with the old behavior moved into `pedantic`.
 Type: `boolean`
 Default: `false`
 
-Use "smart" typographic punctuation for things like quotes and dashes.
+Use "smart" typograhic punctuation for things like quotes and dashes.
 
 ## Access to lexer and parser
 
@@ -297,7 +303,7 @@ $ cat hello.html
 
 The point of marked was to create a markdown compiler where it was possible to
 frequently parse huge chunks of markdown without having to worry about
-caching the compiled output somehow...or blocking for an unnecessarily long time.
+caching the compiled output somehow...or blocking for an unnecesarily long time.
 
 marked is very concise and still implements all markdown features. It is also
 now fully compatible with the client-side.
@@ -308,7 +314,7 @@ cannot pass more than a few tests. It was very difficult to get marked as
 compliant as it is. It could have cut corners in several areas for the sake
 of performance, but did not in order to be exactly what you expect in terms
 of a markdown rendering. In fact, this is why marked could be considered at a
-disadvantage in the benchmarks.
+disadvantage in the benchmarks above.
 
 Along with implementing every markdown feature, marked also implements [GFM
 features][gfmf].
@@ -393,7 +399,7 @@ all code is your original work. `</legalese>`
 
 ## License
 
-Copyright (c) 2011-2018, Christopher Jeffrey. (MIT License)
+Copyright (c) 2011-2014, Christopher Jeffrey. (MIT License)
 
 See LICENSE for more info.
 
