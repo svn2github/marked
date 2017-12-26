@@ -11,12 +11,6 @@
 npm install marked --save
 ```
 
-or if you want to use the `marked` CLI tool (not necessary when using npm run-scripts):
-
-``` bash
-npm install -g marked
-```
-
 ## Usage
 
 Minimal usage:
