@@ -3,7 +3,7 @@
 > A full-featured markdown parser and compiler, written in JavaScript. Built
 > for speed.
 
-[![NPM version](https://badge.fury.io/js/marked.png)][badge]
+[![NPM version](https://badge.fury.io/js/marked.svg)][badge]
 
 ## Install
 
@@ -37,7 +37,7 @@ marked.setOptions({
   tables: true,
   breaks: false,
   pedantic: false,
-  sanitize: true,
+  sanitize: false,
   smartLists: true,
   smartypants: false
 });
@@ -173,7 +173,7 @@ renderer.heading = function (text, level) {
                  escapedText +
                  '"><span class="header-link"></span></a>' +
                   text + '</h' + level + '>';
-},
+};
 
 console.log(marked('# heading+', { renderer: renderer }));
 ```
@@ -271,7 +271,7 @@ default with the old behavior moved into `pedantic`.
 Type: `boolean`
 Default: `false`
 
-Use "smart" typograhic punctuation for things like quotes and dashes.
+Use "smart" typographic punctuation for things like quotes and dashes.
 
 ## Access to lexer and parser
 
@@ -303,7 +303,7 @@ $ cat hello.html
 
 The point of marked was to create a markdown compiler where it was possible to
 frequently parse huge chunks of markdown without having to worry about
-caching the compiled output somehow...or blocking for an unnecesarily long time.
+caching the compiled output somehow...or blocking for an unnecessarily long time.
 
 marked is very concise and still implements all markdown features. It is also
 now fully compatible with the client-side.
@@ -314,7 +314,7 @@ cannot pass more than a few tests. It was very difficult to get marked as
 compliant as it is. It could have cut corners in several areas for the sake
 of performance, but did not in order to be exactly what you expect in terms
 of a markdown rendering. In fact, this is why marked could be considered at a
-disadvantage in the benchmarks above.
+disadvantage in the benchmarks.
 
 Along with implementing every markdown feature, marked also implements [GFM
 features][gfmf].
@@ -399,7 +399,7 @@ all code is your original work. `</legalese>`
 
 ## License
 
-Copyright (c) 2011-2014, Christopher Jeffrey. (MIT License)
+Copyright (c) 2011-2018, Christopher Jeffrey. (MIT License)
 
 See LICENSE for more info.
 
