@@ -5,7 +5,6 @@
  */
 
 ;(function() {
-'use strict';
 
 /**
  * Block-Level Grammar
@@ -446,9 +445,9 @@ Lexer.prototype.token = function(src, top, bq) {
 
 var inline = {
   escape: /^\\([\\`*{}\[\]()#+\-.!_>])/,
-  autolink: /^<([^ <>]+(@|:\/)[^ <>]+)>/,
+  autolink: /^<([^ >]+(@|:\/)[^ >]+)>/,
   url: noop,
-  tag: /^<!--[\s\S]*?-->|^<\/?\w+(?:"[^"]*"|'[^']*'|[^<'">])*?>/,
+  tag: /^<!--[\s\S]*?-->|^<\/?\w+(?:"[^"]*"|'[^']*'|[^'">])*?>/,
   link: /^!?\[(inside)\]\(href\)/,
   reflink: /^!?\[(inside)\]\s*\[([^\]]*)\]/,
   nolink: /^!?\[((?:\[[^\]]*\]|[^\[\]])*)\]/,
@@ -460,7 +459,7 @@ var inline = {
   text: /^[\s\S]+?(?=[\\<!\[_*`]| {2,}\n|$)/
 };
 
-inline._inside = /(?:\[[^\]]*\]|\\[\[\]]|[^\[\]]|\](?=[^\[]*\]))*/;
+inline._inside = /(?:\[[^\]]*\]|[^\[\]]|\](?=[^\[]*\]))*/;
 inline._href = /\s*<?([\s\S]*?)>?(?:\s+['"]([\s\S]*?)['"])?\s*/;
 
 inline.link = replace(inline.link)
@@ -872,10 +871,10 @@ Renderer.prototype.link = function(href, title, text) {
         .replace(/[^\w:]/g, '')
         .toLowerCase();
     } catch (e) {
-      return text;
+      return '';
     }
     if (prot.indexOf('javascript:') === 0 || prot.indexOf('vbscript:') === 0 || prot.indexOf('data:') === 0) {
-      return text;
+      return '';
     }
   }
   if (this.options.baseUrl && !originIndependentUrl.test(href)) {
@@ -1138,15 +1137,15 @@ function resolveUrl(base, href) {
   base = baseUrls[' ' + base];
 
   if (href.slice(0, 2) === '//') {
-    return base.replace(/:[\s\S]*/, ':') + href;
+    return base.replace(/:[^]*/, ':') + href;
   } else if (href.charAt(0) === '/') {
-    return base.replace(/(:\/*[^/]*)[\s\S]*/, '$1') + href;
+    return base.replace(/(:\/*[^/]*)[^]*/, '$1') + href;
   } else {
     return base + href;
   }
 }
-var baseUrls = {};
-var originIndependentUrl = /^$|^[a-z][a-z0-9+.-]*:|^[?#]/i;
+baseUrls = {};
+originIndependentUrl = /^$|^[a-z][a-z0-9+.-]*:|^[?#]/i;
 
 function noop() {}
 noop.exec = noop;

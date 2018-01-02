@@ -219,7 +219,6 @@ This code will output the following HTML:
 - del(*string* text)
 - link(*string* href, *string* title, *string* text)
 - image(*string* href, *string* title, *string* text)
-- text(*string* text)
 
 ### gfm
 
