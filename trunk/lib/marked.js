@@ -5,7 +5,6 @@
  */
 
 ;(function() {
-'use strict';
 
 /**
  * Block-Level Grammar
@@ -872,10 +871,10 @@ Renderer.prototype.link = function(href, title, text) {
         .replace(/[^\w:]/g, '')
         .toLowerCase();
     } catch (e) {
-      return text;
+      return '';
     }
     if (prot.indexOf('javascript:') === 0 || prot.indexOf('vbscript:') === 0 || prot.indexOf('data:') === 0) {
-      return text;
+      return '';
     }
   }
   if (this.options.baseUrl && !originIndependentUrl.test(href)) {
@@ -1145,8 +1144,8 @@ function resolveUrl(base, href) {
     return base + href;
   }
 }
-var baseUrls = {};
-var originIndependentUrl = /^$|^[a-z][a-z0-9+.-]*:|^[?#]/i;
+baseUrls = {};
+originIndependentUrl = /^$|^[a-z][a-z0-9+.-]*:|^[?#]/i;
 
 function noop() {}
 noop.exec = noop;
