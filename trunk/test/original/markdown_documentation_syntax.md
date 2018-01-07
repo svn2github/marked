@@ -1,7 +1,3 @@
----
-pedantic: true
----
-
 Markdown: Syntax
 ================
 
