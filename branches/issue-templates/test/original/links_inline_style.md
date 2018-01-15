@@ -1,7 +1,3 @@
----
-pedantic: true
----
-
 Just a [URL](/url/).
 
 [URL and title](/url/ "title").
