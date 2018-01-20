@@ -27,7 +27,7 @@ console.log(marked('I am using __markdown__.'));
 // Outputs: <p>I am using <strong>markdown</strong>.</p>
 ```
 
-Example setting options:
+Example setting options with default values:
 
 ```js
 var marked = require('marked');
@@ -39,8 +39,7 @@ marked.setOptions({
   pedantic: false,
   sanitize: false,
   smartLists: true,
-  smartypants: false,
-  xhtml: false
+  smartypants: false
 });
 
 console.log(marked('I am using __markdown__.'));
@@ -274,13 +273,6 @@ Type: `boolean`
 Default: `false`
 
 Use "smart" typographic punctuation for things like quotes and dashes.
-
-### xhtml
-
-Type: `boolean`
-Default: `false`
-
-Self-close the tags for void elements (&lt;br/&gt;, &lt;img/&gt;, etc.) with a "/" as required by XHTML.
 
 ## Access to lexer and parser
 

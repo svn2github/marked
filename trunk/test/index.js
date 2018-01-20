@@ -14,8 +14,7 @@ var fs = require('fs')
   , path = require('path')
   , fm = require('front-matter')
   , g2r = require('glob-to-regexp')
-  , marked = require('../')
-  , markedMin = require('../marked.min.js');
+  , marked = require('../');
 
 /**
  * Load Tests
@@ -38,7 +37,7 @@ function load(options) {
   list = fs
     .readdirSync(dir)
     .filter(function(file) {
-      return path.extname(file) === '.md';
+      return path.extname(file) !== '.html';
     })
     .sort();
 
@@ -352,7 +351,7 @@ function fix() {
   fs.readdirSync(path.resolve(__dirname, 'original')).forEach(function(file) {
     var text = fs.readFileSync(path.resolve(__dirname, 'original', file));
 
-    if (path.extname(file) === '.md') {
+    if (file === 'hard_wrapped_paragraphs_with_list_like_lines.md') {
       text = '---\ngfm: false\n---\n' + text;
     }
 
@@ -486,10 +485,6 @@ function parseArg(argv) {
       case '--time':
         options.time = true;
         break;
-      case '-m':
-      case '--minified':
-        options.minified = true;
-        break;
       case '--glob':
         arg = argv.shift();
         options.glob = arg.replace(/^=/, '');
@@ -554,9 +549,6 @@ function main(argv) {
     return time(opt);
   }
 
-  if (opt.minified) {
-    marked = markedMin;
-  }
   return runTests(opt);
 }
 
