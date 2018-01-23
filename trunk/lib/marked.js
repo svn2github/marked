@@ -29,7 +29,7 @@ var block = {
 };
 
 block._label = /(?:\\[\[\]]|[^\[\]])+/;
-block._title = /(?:"(?:\\"|[^"])*"|'\n?(?:[^'\n]+\n?)*'|\([^()]*\))/;
+block._title = /(?:"(?:\\"|[^"]|"[^"\n]*")*"|'\n?(?:[^'\n]+\n?)*'|\([^()]*\))/;
 block.def = replace(block.def)
   ('label', block._label)
   ('title', block._title)
@@ -50,12 +50,12 @@ block.list = replace(block.list)
 block._tag = '(?!(?:'
   + 'a|em|strong|small|s|cite|q|dfn|abbr|data|time|code'
   + '|var|samp|kbd|sub|sup|i|b|u|mark|ruby|rt|rp|bdi|bdo'
-  + '|span|br|wbr|ins|del|img)\\b)\\w+(?!:|[^\\w\\s@]*@)\\b';
+  + '|span|br|wbr|ins|del|img)\\b)\\w+(?!:/|[^\\w\\s@]*@)\\b';
 
 block.html = replace(block.html)
   ('comment', /<!--[\s\S]*?-->/)
   ('closed', /<(tag)[\s\S]+?<\/\1>/)
-  ('closing', /<tag(?:"[^"]*"|'[^']*'|\s[^'"\/>]*)*?\/?>/)
+  ('closing', /<tag(?:"[^"]*"|'[^']*'|[^'">])*?>/)
   (/tag/g, block._tag)
   ();
 
@@ -460,9 +460,9 @@ Lexer.prototype.token = function(src, top) {
 
 var inline = {
   escape: /^\\([\\`*{}\[\]()#+\-.!_>])/,
-  autolink: /^<(scheme:[^\s\x00-\x1f<>]*|email)>/,
+  autolink: /^<([^ <>]+(@|:\/)[^ <>]+)>/,
   url: noop,
-  tag: /^<!--[\s\S]*?-->|^<\/?[a-zA-Z0-9\-]+(?:"[^"]*"|'[^']*'|\s[^<'">\/]*)*?\/?>/,
+  tag: /^<!--[\s\S]*?-->|^<\/?\w+(?:"[^"]*"|'[^']*'|[^<'">])*?>/,
   link: /^!?\[(inside)\]\(href\)/,
   reflink: /^!?\[(inside)\]\s*\[([^\]]*)\]/,
   nolink: /^!?\[((?:\[[^\]]*\]|\\[\[\]]|[^\[\]])*)\]/,
@@ -473,14 +473,6 @@ var inline = {
   del: noop,
   text: /^[\s\S]+?(?=[\\<!\[_*`]| {2,}\n|$)/
 };
-
-inline._scheme = /[a-zA-Z][a-zA-Z0-9+.-]{1,31}/;
-inline._email = /[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+(@)[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+(?![-_])/;
-
-inline.autolink = replace(inline.autolink)
-  ('scheme', inline._scheme)
-  ('email', inline._email)
-  ()
 
 inline._inside = /(?:\[[^\]]*\]|\\[\[\]]|[^\[\]]|\](?=[^\[]*\]))*/;
 inline._href = /\s*<?([\s\S]*?)>?(?:\s+['"]([\s\S]*?)['"])?\s*/;
@@ -515,14 +507,11 @@ inline.pedantic = merge({}, inline.normal, {
 
 inline.gfm = merge({}, inline.normal, {
   escape: replace(inline.escape)('])', '~|])')(),
-  url: replace(/^((?:ftp|https?):\/\/|www\.)(?:[a-zA-Z0-9\-]+\.?)+[^\s<]*|^email/)
-    ('email', inline._email)
-    (),
-  _backpedal: /(?:[^?!.,:;*_~()&]+|\([^)]*\)|&(?![a-zA-Z0-9]+;$)|[?!.,:;*_~)]+(?!$))+/,
+  url: /^(https?:\/\/[^\s<]+[^<.,:;"')\]\s])/,
   del: /^~~(?=\S)([\s\S]*?\S)~~/,
   text: replace(inline.text)
     (']|', '~]|')
-    ('|', '|https?://|ftp://|www\\.|[a-zA-Z0-9.!#$%&\'*+/=?^_`{\\|}~-]+@|')
+    ('|', '|https?://|')
     ()
 });
 
@@ -600,8 +589,12 @@ InlineLexer.prototype.output = function(src) {
     if (cap = this.rules.autolink.exec(src)) {
       src = src.substring(cap[0].length);
       if (cap[2] === '@') {
-        text = escape(this.mangle(cap[1]));
-        href = 'mailto:' + text;
+        text = escape(
+          cap[1].charAt(6) === ':'
+          ? this.mangle(cap[1].substring(7))
+          : this.mangle(cap[1])
+        );
+        href = this.mangle('mailto:') + text;
       } else {
         text = escape(cap[1]);
         href = text;
@@ -612,19 +605,9 @@ InlineLexer.prototype.output = function(src) {
 
     // url (gfm)
     if (!this.inLink && (cap = this.rules.url.exec(src))) {
-      cap[0] = this.rules._backpedal.exec(cap[0])[0];
       src = src.substring(cap[0].length);
-      if (cap[2] === '@') {
-        text = escape(cap[0]);
-        href = 'mailto:' + text;
-      } else {
-        text = escape(cap[0]);
-        if (cap[1] === 'www.') {
-          href = 'http://' + text;
-        } else {
-          href = text;
-        }
-      }
+      text = escape(cap[1]);
+      href = text;
       out += this.renderer.link(href, null, text);
       continue;
     }
