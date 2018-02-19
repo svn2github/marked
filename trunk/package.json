@@ -2,7 +2,7 @@
   "name": "marked",
   "description": "A markdown parser built for speed",
   "author": "Christopher Jeffrey",
-  "version": "0.3.15",
+  "version": "0.3.14",
   "main": "./lib/marked.js",
   "bin": "./bin/marked",
   "man": "./man/marked.1",
@@ -23,28 +23,16 @@
     "html"
   ],
   "devDependencies": {
-    "eslint": "^4.15.0",
-    "eslint-config-standard": "^11.0.0-beta.0",
-    "eslint-plugin-import": "^2.8.0",
-    "eslint-plugin-node": "^5.2.1",
-    "eslint-plugin-promise": "^3.6.0",
-    "eslint-plugin-standard": "^3.0.1",
+    "markdown": "*",
+    "showdown": "*",
+    "markdown-it": "*",
     "front-matter": "^2.3.0",
     "glob-to-regexp": "0.3.0",
-    "markdown": "*",
-    "markdown-it": "*",
-    "showdown": "*",
     "uglify-js": "^3.3.10"
   },
   "scripts": {
     "test": "node test",
-    "test:lint": "eslint lib/marked.js test/index.js",
     "bench": "node test --bench",
-    "lint": "eslint --fix lib/marked.js test/index.js",
-    "build": "uglifyjs lib/marked.js -cm  --comments /Copyright/ -o marked.min.js",
-    "preversion": "npm run build"
-  },
-  "engines": {
-    "node": ">=0.10.0"
+    "build": "uglifyjs lib/marked.js -cm  --comments /Copyright/ -o marked.min.js"
   }
 }
