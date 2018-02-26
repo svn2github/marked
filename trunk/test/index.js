@@ -112,7 +112,7 @@ function runTests(engine, options) {
     file = files[filename];
 
     var before = process.hrtime();
-    success = testFile(engine, file, filename, i + 1);
+    success = testFile(engine, file, filename, i + 1); // TODO Can't testFile throw?
     var elapsed = process.hrtime(before);
     var tookLessThanOneSec = (elapsed[0] === 0);
 
@@ -141,16 +141,16 @@ function testFile(engine, file, filename, index) {
       text,
       html,
       j,
-      l,
-      before,
-      elapsed;
+      l;
 
   if (marked._original) {
     marked.defaults = marked._original;
     delete marked._original;
   }
 
-  console.log('#%d. Test %s', index, filename);
+  console.log('#%d. Test %s.', index, filename);
+
+	var before = process.hrtime();
 
   if (opts.length) {
     marked._original = marked.defaults;
@@ -165,17 +165,24 @@ function testFile(engine, file, filename, index) {
     });
   }
 
-  before = process.hrtime();
+  var threw = false;
+  var exceptionToThrow = null;
   try {
     text = engine(file.text).replace(/\s/g, '');
     html = file.html.replace(/\s/g, '');
   } catch (e) {
-    elapsed = process.hrtime(before);
-    console.log('    failed in %dms', prettyElapsedTime(elapsed));
-    throw e;
+    threw = true;
+    exceptionToThrow = e;
   }
+  var elapsed = process.hrtime(before);
 
-  elapsed = process.hrtime(before);
+  var prettyElapsed = 'in ' + prettyElapsedTime(elapsed) + ' seconds';
+
+  // TODO Why do we throw this?
+	if (threw) {
+    console.log('    failed ' + prettyElapsed);
+		throw exceptionToThrow;
+	}
 
   l = html.length;
 
@@ -189,7 +196,9 @@ function testFile(engine, file, filename, index) {
         Math.max(j - 30, 0),
         Math.min(j + 30, l));
 
-      console.log('    failed in %dms at offset %d. Near: "%s".\n', prettyElapsedTime(elapsed), j, text);
+      console.log(
+        '\n#%d. %s failed at offset %d ' + prettyElapsed + '. Near: "%s".\n',
+        index, filename, j, text);
 
       console.log('\nGot:\n%s\n', text.trim() || text);
       console.log('\nExpected:\n%s\n', html.trim() || html);
@@ -198,7 +207,7 @@ function testFile(engine, file, filename, index) {
     }
   }
 
-  console.log('    passed in %dms', prettyElapsedTime(elapsed));
+  console.log('    passed ' + prettyElapsed);
   return true;
 }
 
@@ -596,6 +605,6 @@ if (!module.parent) {
 // returns time to millisecond granularity
 function prettyElapsedTime(hrtimeElapsed) {
   var seconds = hrtimeElapsed[0];
-  var frac = Math.round(hrtimeElapsed[1] / 1e3) / 1e3;
-  return seconds * 1e3 + frac;
+  var fracInMs = Math.round(hrtimeElapsed[1] / 1e6);
+  return seconds + '.' + fracInMs;
 }
