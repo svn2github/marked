@@ -1,7 +1,5 @@
 **Marked version:**
 
-**Markdown flavor:** Markdown.pl|CommonMark|GitHub Flavored Markdown|n/a
-
 <!-- The NPM version or commit hash having the issue --> 
 
 <!-- 

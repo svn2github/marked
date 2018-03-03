@@ -3,7 +3,7 @@
 /**
  * marked tests
  * Copyright (c) 2011-2013, Christopher Jeffrey. (MIT Licensed)
- * https://github.com/markedjs/marked
+ * https://github.com/chjj/marked
  */
 
 /**
@@ -352,7 +352,7 @@ function time(options) {
 function fix() {
   ['compiled_tests', 'original', 'new'].forEach(function(dir) {
     try {
-      fs.mkdirSync(path.resolve(__dirname, dir));
+      fs.mkdirSync(path.resolve(__dirname, dir), 0o755);
     } catch (e) {
       ;
     }
