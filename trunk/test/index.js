@@ -3,7 +3,7 @@
 /**
  * marked tests
  * Copyright (c) 2011-2013, Christopher Jeffrey. (MIT Licensed)
- * https://github.com/markedjs/marked
+ * https://github.com/chjj/marked
  */
 
 /**
@@ -110,13 +110,8 @@ function runTests(engine, options) {
   for (i = 0; i < len; i++) {
     filename = filenames[i];
     file = files[filename];
-
-    var before = process.hrtime();
     success = testFile(engine, file, filename, i + 1);
-    var elapsed = process.hrtime(before);
-    var tookLessThanOneSec = (elapsed[0] === 0);
-
-    if (success && tookLessThanOneSec) {
+    if (success) {
       succeeded++;
     } else {
       failed++;
@@ -141,16 +136,12 @@ function testFile(engine, file, filename, index) {
       text,
       html,
       j,
-      l,
-      before,
-      elapsed;
+      l;
 
   if (marked._original) {
     marked.defaults = marked._original;
     delete marked._original;
   }
-
-  console.log('#%d. Test %s', index, filename);
 
   if (opts.length) {
     marked._original = marked.defaults;
@@ -165,17 +156,13 @@ function testFile(engine, file, filename, index) {
     });
   }
 
-  before = process.hrtime();
   try {
     text = engine(file.text).replace(/\s/g, '');
     html = file.html.replace(/\s/g, '');
   } catch (e) {
-    elapsed = process.hrtime(before);
-    console.log('    failed in %dms', prettyElapsedTime(elapsed));
+    console.log('%s failed.', filename);
     throw e;
   }
-
-  elapsed = process.hrtime(before);
 
   l = html.length;
 
@@ -189,7 +176,9 @@ function testFile(engine, file, filename, index) {
         Math.max(j - 30, 0),
         Math.min(j + 30, l));
 
-      console.log('    failed in %dms at offset %d. Near: "%s".\n', prettyElapsedTime(elapsed), j, text);
+      console.log(
+        '\n#%d. %s failed at offset %d. Near: "%s".\n',
+        index, filename, j, text);
 
       console.log('\nGot:\n%s\n', text.trim() || text);
       console.log('\nExpected:\n%s\n', html.trim() || html);
@@ -198,8 +187,8 @@ function testFile(engine, file, filename, index) {
     }
   }
 
-  console.log('    passed in %dms', prettyElapsedTime(elapsed));
-  return true;
+  console.log('#%d. %s completed.', index, filename);
+  return true
 }
 
 /**
@@ -352,7 +341,7 @@ function time(options) {
 function fix() {
   ['compiled_tests', 'original', 'new'].forEach(function(dir) {
     try {
-      fs.mkdirSync(path.resolve(__dirname, dir));
+      fs.mkdirSync(path.resolve(__dirname, dir), 0o755);
     } catch (e) {
       ;
     }
@@ -591,11 +580,4 @@ if (!module.parent) {
   exports.load = load;
   exports.bench = bench;
   module.exports = exports;
-}
-
-// returns time to millisecond granularity
-function prettyElapsedTime(hrtimeElapsed) {
-  var seconds = hrtimeElapsed[0];
-  var frac = Math.round(hrtimeElapsed[1] / 1e3) / 1e3;
-  return seconds * 1e3 + frac;
 }

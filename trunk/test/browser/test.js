@@ -1,66 +1,64 @@
-
 ;(function() {
-  var console = {},
-      files = __TESTS__; // eslint-disable-line no-undef
 
-  console.log = function(text) {
-    var args = Array.prototype.slice.call(arguments, 1),
-        i = 0;
+var console = {}
+  , files = __TESTS__;
 
-    text = text.replace(/%\w/g, function() {
-      return args[i++] || '';
-    });
+console.log = function(text) {
+  var args = Array.prototype.slice.call(arguments, 1)
+    , i = 0;
 
-    if (window.console) window.console.log(text);
-    document.body.innerHTML += '<pre>' + escape(text) + '</pre>';
+  text = text.replace(/%\w/g, function() {
+    return args[i++] || '';
+  });
+
+  if (window.console) window.console.log(text);
+  document.body.innerHTML += '<pre>' + escape(text) + '</pre>';
+};
+
+if (!Object.keys) {
+  Object.keys = function(obj) {
+    var out = []
+      , key;
+
+    for (key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        out.push(key);
+      }
+    }
+
+    return out;
   };
+}
 
-  if (!Object.keys) {
-    Object.keys = function(obj) {
-      var out = [],
-          key;
+if (!Array.prototype.forEach) {
+  Array.prototype.forEach = function(callback, context) {
+    for (var i = 0; i < this.length; i++) {
+      callback.call(context || null, this[i], i, obj);
+    }
+  };
+}
 
-      for (key in obj) {
-        if (Object.prototype.hasOwnProperty.call(obj, key)) {
-          out.push(key);
-        }
-      }
+if (!String.prototype.trim) {
+  String.prototype.trim = function() {
+    return this.replace(/^\s+|\s+$/g, '');
+  };
+}
 
-      return out;
-    };
-  }
+function load() {
+  return files;
+}
 
-  if (!Array.prototype.forEach) {
-    // eslint-disable-next-line no-extend-native
-    Array.prototype.forEach = function(callback, context) {
-      for (var i = 0; i < this.length; i++) {
-        callback.call(context || null, this[i], i, this);
-      }
-    };
-  }
+function escape(html, encode) {
+  return html
+    .replace(!encode ? /&(?!#?\w+;)/g : /&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 
-  if (!String.prototype.trim) {
-    // eslint-disable-next-line no-extend-native
-    String.prototype.trim = function() {
-      return this.replace(/^\s+|\s+$/g, '');
-    };
-  }
+__LIBS__;
 
-  // eslint-disable-next-line no-unused-vars
-  function load() {
-    return files;
-  }
+(__MAIN__)();
 
-  function escape(html, encode) {
-    return html
-      .replace(!encode ? /&(?!#?\w+;)/g : /&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
-  }
-
-  __LIBS__; // eslint-disable-line no-undef, no-unused-expressions
-
-  (__MAIN__)(); // eslint-disable-line no-undef
 }).call(this);

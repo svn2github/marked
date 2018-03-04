@@ -22,7 +22,6 @@
   "env": {
     "node": true,
     "browser": true,
-    "amd": true,
-    "jasmine": true
+    "amd": true
   }
 }
