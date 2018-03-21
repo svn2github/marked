@@ -14,12 +14,13 @@ To be removed: please let us know or submit a PR.
 
 Contributors are users who submit a [PR](https://github.com/markedjs/marked/pulls), [Issue](https://github.com/markedjs/marked/issues), or collaborate in making Marked a better product and experience for all the users.
 
-|Name                |GitHub handle    |Badge of honor                        |
-|:-------------------|:----------------|:-------------------------------------|
-|Karen Yavine        |@karenyavine     |Snyk's Security Saint                 |
-|Federico Soave      |@Feder1co5oave   |Regent of the Regex, Master of Marked |
-|Brandon der Blätter |@intcreator      |Curious Contributor                   |
-|Костя Третяк        |@KostyaTretyak   |--                                    |
+|Name                |GitHub handle    |Badge of honor                                |
+|:-------------------|:----------------|:---------------------------------------------|
+|Brandon der Blätter |@intcreator      |Curious Contributor                           |
+|Carlos Valle        |@carlosvalle     |Maker of the Marked mark from 2018 to present |
+|Federico Soave      |@Feder1co5oave   |Regent of the Regex, Master of Marked         |
+|Karen Yavine        |@karenyavine     |Snyk's Security Saint                         |
+|Костя Третяк        |@KostyaTretyak   |--                                            |
 
 To be listed: make a contribution and, if it has significant impact, the committers may be able to add you here.
 
@@ -35,8 +36,9 @@ A note on "decision making authority". This is related to submitting PRs and the
 
 |Name           |GiHub handle   |Decision making                          |Badges of honor (tag for questions) |
 |:--------------|:--------------|:----------------------------------------|------------------------------------|
-|Tony Brix      |@UziTech       |Titan of the test harness and Dr. DevOps |                                    |
 |Jamie Davis    |@davisjam      |Seeker of Security                       |                                    |
+|Steven         |@styfle        |Open source, of course and GitHub Guru   |                                    |
+|Tony Brix      |@UziTech       |Titan of the test harness and Dr. DevOps |                                    |
 
 **Should not exceed 5:** For larger PRs affecting more of the codebase and, most likely, review by more people, we try to keep this pool small and responsive and let those with decision making authority have final say without negative repercussions from the other committers.
 
@@ -55,10 +57,6 @@ A note on volunteering:
 ## Admins
 
 Admins are committers who also have the responsibility, privilege, and burden of selecting committers and making sure the project itself runs smoothly, which includes community maintenance, governance, dispute resolution, and so on. (Letting the contributors easily enter into, and work within, the project to begin contributing, with as little friction as possible.)
-
-|Name           |GiHub handle   |Decision making                          |Badges of honor (tag for questions) |
-|:--------------|:--------------|:----------------------------------------|------------------------------------|
-|Steven         |@styfle        |Open source, of course and GitHub Guru   |Humaning Helper                     |
 
 **Should not exceed 3:** When there are too many people with the ability to reolves disputes, the dispute itself can quickly turn into a dispute amongst the admins themselves; therefore, we want this group to be small enough to commit to action and large enough to not put too much burden on one person. (Should ensure faster resolution and responsiveness.)
 

@@ -1,21 +1,11 @@
-<a href="https://marked.js.org">
-  <img width="60px" height="60px" src="https://marked.js.org/img/logo-black.svg" align="right" />
-</a>
-
 # Marked
 
-- ⚡ built for speed
-- ⬇️ low-level compiler for parsing markdown without caching or blocking for long periods of time
-- ⚖️ light-weight while implementing all markdown features from the supported flavors & specifications
-- 🌐 works in a browser, on a server, or from a command line interface (CLI)
+Marked is 
 
-## Demo
-
-Checkout the [demo page](https://marked.js.org/demo/) to see marked in action ⛹️
-
-## Docs
-
-Our [documentation pages](https://marked.js.org) are also rendered using marked 💯
+1. built for speed.
+2. a low-level markdown compiler that allows frequent parsing of large chunks of markdown without caching or blocking for long periods of time.
+3. light-weight while implementing all markdown features from the supported flavors & specifications.
+4. available as a command line interface (CLI) and running in client- or server-side JavaScript projects.
 
 ## Installation
 
@@ -43,10 +33,10 @@ $ cat hello.html
 <head>
   <meta charset="utf-8"/>
   <title>Marked in the browser</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
   <div id="content"></div>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script>
     document.getElementById('content').innerHTML =
       marked('# Marked in the browser\n\nRendered by **marked**.');
@@ -54,6 +44,8 @@ $ cat hello.html
 </body>
 </html>
 ```
+
+
 
 ## License
 

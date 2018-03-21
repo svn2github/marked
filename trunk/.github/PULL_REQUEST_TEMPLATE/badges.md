@@ -1,8 +1,7 @@
 **@mention the contributor:**
 
-## Recommendation to:
+This is a recommendation to:
 
-- [ ] Change user group
 - [ ] Add a badge
 - [ ] Remove a badge
 
@@ -14,11 +13,10 @@
 
 -->
 
-## As the one mentioned, I would like to:
+If you're the one mentioned in this PR:
 
-- [ ] accept the recommendation; or,
-- [ ] graciously decline; or,
-- [ ] dispute the recommendation
+- [ ] whether you will accept the badge or not; or,
+- [ ] whether you will or will not dispute the recommendation to remove
 
 within 30 days (silence is consent at this point, can't have the pull requests page filled with PRs related to badges forever).
 
