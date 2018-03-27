@@ -25,9 +25,8 @@ var renderer = new myMarked.Renderer();
 renderer.heading = function (text, level) {
   var escapedText = text.toLowerCase().replace(/[^\w]+/g, '-');
 
-  return `
-          <h${level}>
-            <a name="${escapedText}" class="anchor" href="#${escapedText}">
+  return `<h${level}>
+            <a name="'${escapedText}'" class="anchor" href="#${escapedText}">
               <span class="header-link"></span>
             </a>
             ${text}
@@ -35,7 +34,7 @@ renderer.heading = function (text, level) {
 };
 
 // Run marked
-console.log(myMarked('# heading+', { renderer: renderer }));
+console.log(marked('# heading+', { renderer: renderer }));
 ```
 
 **Output:**
@@ -95,22 +94,6 @@ The parser is...
 ***
 
 <h2 id="extend">Access to lexer and parser</h2>
-
-You also have direct access to the lexer and parser if you so desire.
-
-``` js
-var tokens = marked.lexer(text, options);
-console.log(marked.parser(tokens));
-```
-
-``` js
-var lexer = new marked.Lexer(options);
-var tokens = lexer.lex(text);
-console.log(tokens);
-console.log(lexer.rules);
-```
-
-### Pro level
 
 You also have direct access to the lexer and parser if you so desire.
 
