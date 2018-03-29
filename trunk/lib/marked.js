@@ -823,20 +823,16 @@ Renderer.prototype.html = function(html) {
 };
 
 Renderer.prototype.heading = function(text, level, raw) {
-  if (this.options.headerIds) {
-    return '<h'
-      + level
-      + ' id="'
-      + this.options.headerPrefix
-      + raw.toLowerCase().replace(/[^\w]+/g, '-')
-      + '">'
-      + text
-      + '</h'
-      + level
-      + '>\n';
-  }
-  // ignore IDs
-  return '<h' + level + '>' + text + '</h' + level + '>\n';
+  return '<h'
+    + level
+    + ' id="'
+    + this.options.headerPrefix
+    + raw.toLowerCase().replace(/[^\w]+/g, '-')
+    + '">'
+    + text
+    + '</h'
+    + level
+    + '>\n';
 };
 
 Renderer.prototype.hr = function() {
@@ -1346,23 +1342,22 @@ marked.setOptions = function(opt) {
 };
 
 marked.defaults = {
-  baseUrl: null,
-  breaks: false,
   gfm: true,
-  headerIds: true,
-  headerPrefix: '',
-  highlight: null,
-  langPrefix: 'lang-',
-  mangle: true,
+  tables: true,
+  breaks: false,
   pedantic: false,
-  renderer: new Renderer(),
   sanitize: false,
   sanitizer: null,
-  silent: false,
+  mangle: true,
   smartLists: false,
+  silent: false,
+  highlight: null,
+  langPrefix: 'lang-',
   smartypants: false,
-  tables: true,
-  xhtml: false
+  headerPrefix: '',
+  renderer: new Renderer(),
+  xhtml: false,
+  baseUrl: null
 };
 
 /**
