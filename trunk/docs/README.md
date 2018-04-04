@@ -49,11 +49,6 @@ $ cat hello.html
 <p>hello world</p>
 ```
 
-``` bash
-$ marked -s "*hello world*"
-<p><em>hello world</em></p>
-```
-
 **Browser**
 
 ```html
