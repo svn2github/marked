@@ -365,15 +365,10 @@ function fix() {
 
   // cp -r original tests
   fs.readdirSync(path.resolve(__dirname, 'original')).forEach(function(file) {
-    var text = fs.readFileSync(path.resolve(__dirname, 'original', file), 'utf8');
+    var text = fs.readFileSync(path.resolve(__dirname, 'original', file));
 
     if (path.extname(file) === '.md') {
-      if (fm.test(text)) {
-        text = fm(text);
-        text = '---\n' + text.frontmatter + '\ngfm: false\n---\n' + text.body;
-      } else {
-        text = '---\ngfm: false\n---\n' + text;
-      }
+      text = '---\ngfm: false\n---\n' + text;
     }
 
     fs.writeFileSync(path.resolve(__dirname, 'compiled_tests', file), text);

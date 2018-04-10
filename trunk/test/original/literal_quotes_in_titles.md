@@ -1,7 +1,3 @@
----
-pedantic: true
----
-
 Foo [bar][].
 
 Foo [bar](/url/ "Title with "quotes" inside").

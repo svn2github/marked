@@ -1,7 +1,3 @@
----
-pedantic: true
----
-
 This is the [simple case].
 
 [simple case]: /simple
