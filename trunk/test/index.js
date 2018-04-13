@@ -111,9 +111,12 @@ function runTests(engine, options) {
     filename = filenames[i];
     file = files[filename];
 
+    var before = process.hrtime();
     success = testFile(engine, file, filename, i + 1);
+    var elapsed = process.hrtime(before);
+    var tookLessThanOneSec = (elapsed[0] === 0);
 
-    if (success) {
+    if (success && tookLessThanOneSec) {
       succeeded++;
     } else {
       failed++;
@@ -193,11 +196,6 @@ function testFile(engine, file, filename, index) {
 
       return false;
     }
-  }
-
-  if (elapsed[0] > 0) {
-    console.log('    failed because it took too long.\n\n    passed in %dms', prettyElapsedTime(elapsed));
-    return false;
   }
 
   console.log('    passed in %dms', prettyElapsedTime(elapsed));
