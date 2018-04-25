@@ -249,7 +249,7 @@ Lexer.prototype.token = function(src, top) {
 
       item = {
         type: 'table',
-        header: splitCells(cap[1].replace(/^ *| *\| *$/g, '')),
+        header: cap[1].replace(/^ *| *\| *$/g, '').split(/ *\| */),
         align: cap[2].replace(/^ *|\| *$/g, '').split(/ *\| */),
         cells: cap[3].replace(/\n$/, '').split('\n')
       };
@@ -267,7 +267,7 @@ Lexer.prototype.token = function(src, top) {
       }
 
       for (i = 0; i < item.cells.length; i++) {
-        item.cells[i] = splitCells(item.cells[i]);
+        item.cells[i] = item.cells[i].split(/ *\| */);
       }
 
       this.tokens.push(item);
@@ -416,7 +416,7 @@ Lexer.prototype.token = function(src, top) {
 
       item = {
         type: 'table',
-        header: splitCells(cap[1].replace(/^ *| *\| *$/g, '')),
+        header: cap[1].replace(/^ *| *\| *$/g, '').split(/ *\| */),
         align: cap[2].replace(/^ *|\| *$/g, '').split(/ *\| */),
         cells: cap[3].replace(/(?: *\| *)?\n$/, '').split('\n')
       };
@@ -434,8 +434,9 @@ Lexer.prototype.token = function(src, top) {
       }
 
       for (i = 0; i < item.cells.length; i++) {
-        item.cells[i] = splitCells(
-          item.cells[i].replace(/^ *\| *| *\| *$/g, ''));
+        item.cells[i] = item.cells[i]
+          .replace(/^ *\| *| *\| *$/g, '')
+          .split(/ *\| */);
       }
 
       this.tokens.push(item);
@@ -1308,16 +1309,6 @@ function merge(obj) {
   }
 
   return obj;
-}
-
-function splitCells(tableRow) {
-  var cells = tableRow.replace(/([^\\])\|/g, '$1 |').split(/ +\| */),
-      i = 0;
-
-  for (; i < cells.length; i++) {
-    cells[i] = cells[i].replace(/\\\|/g, '|');
-  }
-  return cells;
 }
 
 /**
