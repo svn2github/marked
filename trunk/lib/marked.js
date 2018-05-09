@@ -217,7 +217,7 @@ Lexer.prototype.token = function(src, top) {
       this.tokens.push({
         type: 'code',
         text: !this.options.pedantic
-          ? rtrim(cap, '\n')
+          ? cap.replace(/\n+$/, '')
           : cap
       });
       continue;
@@ -889,7 +889,7 @@ Renderer.prototype.code = function(code, lang, escaped) {
   if (!lang) {
     return '<pre><code>'
       + (escaped ? code : escape(code, true))
-      + '</code></pre>';
+      + '\n</code></pre>';
   }
 
   return '<pre><code class="'
@@ -897,7 +897,7 @@ Renderer.prototype.code = function(code, lang, escaped) {
     + escape(lang, true)
     + '">'
     + (escaped ? code : escape(code, true))
-    + '</code></pre>\n';
+    + '\n</code></pre>\n';
 };
 
 Renderer.prototype.blockquote = function(quote) {
@@ -1303,7 +1303,7 @@ function resolveUrl(base, href) {
     if (/^[^:]+:\/*[^/]*$/.test(base)) {
       baseUrls[' ' + base] = base + '/';
     } else {
-      baseUrls[' ' + base] = rtrim(base, '/', true);
+      baseUrls[' ' + base] = base.replace(/[^/]*$/, '');
     }
   }
   base = baseUrls[' ' + base];
@@ -1353,32 +1353,6 @@ function splitCells(tableRow, count) {
     cells[i] = cells[i].replace(/\\\|/g, '|');
   }
   return cells;
-}
-
-// Remove trailing 'c's. Equivalent to str.replace(/c*$/, '').
-// /c*$/ is vulnerable to REDOS.
-// invert: Remove suffix of non-c chars instead. Default falsey.
-function rtrim(str, c, invert) {
-  if (str.length === 0) {
-    return '';
-  }
-
-  // Length of suffix matching the invert condition.
-  var suffLen = 0;
-
-  // Step left until we fail to match the invert condition.
-  while (suffLen < str.length) {
-    var currChar = str.charAt(str.length - suffLen - 1);
-    if (currChar === c && !invert) {
-      suffLen++;
-    } else if (currChar !== c && invert) {
-      suffLen++;
-    } else {
-      break;
-    }
-  }
-
-  return str.substr(0, str.length - suffLen);
 }
 
 /**
@@ -1496,7 +1470,7 @@ marked.getDefaults = function () {
     headerIds: true,
     headerPrefix: '',
     highlight: null,
-    langPrefix: 'language-',
+    langPrefix: 'lang-',
     mangle: true,
     pedantic: false,
     renderer: new Renderer(),
