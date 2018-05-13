@@ -53,11 +53,3 @@ header h1 {
 	flex-grow: 1;
 	flex-shrink: 1;
 }
-
-#preview {
-	display: flex;
-}
-
-#preview iframe {
-	flex-grow: 1;
-}
