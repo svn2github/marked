@@ -195,7 +195,9 @@ Lexer.prototype.token = function(src, top) {
       i,
       tag,
       l,
-      isordered;
+      isordered,
+      istask,
+      ischecked;
 
   while (src) {
     // newline
@@ -363,10 +365,20 @@ Lexer.prototype.token = function(src, top) {
           if (!loose) loose = next;
         }
 
+        // Check for task list items
+        istask = /^\[[ xX]\] /.test(item);
+        ischecked = undefined;
+        if (istask) {
+          ischecked = item[1] !== ' ';
+          item = item.replace(/^\[[ xX]\] +/, '');
+        }
+
         this.tokens.push({
           type: loose
             ? 'loose_item_start'
-            : 'list_item_start'
+            : 'list_item_start',
+          task: istask,
+          checked: ischecked
         });
 
         // Recurse.
@@ -877,7 +889,7 @@ Renderer.prototype.code = function(code, lang, escaped) {
   if (!lang) {
     return '<pre><code>'
       + (escaped ? code : escape(code, true))
-      + '\n</code></pre>';
+      + '</code></pre>';
   }
 
   return '<pre><code class="'
@@ -885,7 +897,7 @@ Renderer.prototype.code = function(code, lang, escaped) {
     + escape(lang, true)
     + '">'
     + (escaped ? code : escape(code, true))
-    + '\n</code></pre>\n';
+    + '</code></pre>\n';
 };
 
 Renderer.prototype.blockquote = function(quote) {
@@ -926,6 +938,14 @@ Renderer.prototype.list = function(body, ordered, start) {
 Renderer.prototype.listitem = function(text) {
   return '<li>' + text + '</li>\n';
 };
+
+Renderer.prototype.checkbox = function(checked) {
+  return '<input '
+    + (checked ? 'checked="" ' : '')
+    + 'disabled="" type="checkbox"'
+    + (this.options.xhtml ? ' /' : '')
+    + '> ';
+}
 
 Renderer.prototype.paragraph = function(text) {
   return '<p>' + text + '</p>\n';
@@ -1198,6 +1218,10 @@ Parser.prototype.tok = function() {
     case 'list_item_start': {
       body = '';
 
+      if (this.token.task) {
+        body += this.renderer.checkbox(this.token.checked);
+      }
+
       while (this.next().type !== 'list_item_end') {
         body += this.token.type === 'text'
           ? this.parseText()
@@ -1446,7 +1470,7 @@ marked.getDefaults = function () {
     headerIds: true,
     headerPrefix: '',
     highlight: null,
-    langPrefix: 'lang-',
+    langPrefix: 'language-',
     mangle: true,
     pedantic: false,
     renderer: new Renderer(),
