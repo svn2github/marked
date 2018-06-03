@@ -889,7 +889,7 @@ Renderer.prototype.code = function(code, lang, escaped) {
   if (!lang) {
     return '<pre><code>'
       + (escaped ? code : escape(code, true))
-      + '\n</code></pre>';
+      + '</code></pre>';
   }
 
   return '<pre><code class="'
@@ -897,7 +897,7 @@ Renderer.prototype.code = function(code, lang, escaped) {
     + escape(lang, true)
     + '">'
     + (escaped ? code : escape(code, true))
-    + '\n</code></pre>\n';
+    + '</code></pre>\n';
 };
 
 Renderer.prototype.blockquote = function(quote) {
@@ -1496,7 +1496,7 @@ marked.getDefaults = function () {
     headerIds: true,
     headerPrefix: '',
     highlight: null,
-    langPrefix: 'lang-',
+    langPrefix: 'language-',
     mangle: true,
     pedantic: false,
     renderer: new Renderer(),
