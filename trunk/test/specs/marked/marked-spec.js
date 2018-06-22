@@ -32,11 +32,11 @@ Messenger.prototype.test = function(spec, section, ignore) {
 
 var messenger = new Messenger();
 
-describe('Marked Code spans', function() {
-  var section = 'Code spans';
+describe('Marked Autolinks', function() {
+  var section = 'Autolinks';
 
   // var shouldPassButFails = [];
-  var shouldPassButFails = [1];
+  var shouldPassButFails = [];
 
   var willNotBeAttemptedByCoreTeam = [];
 
@@ -47,10 +47,11 @@ describe('Marked Code spans', function() {
   });
 });
 
-describe('Marked Links', function() {
-  var section = 'Links';
+describe('Marked Code spans', function() {
+  var section = 'Code spans';
 
-  var shouldPassButFails = [];
+  // var shouldPassButFails = [];
+  var shouldPassButFails = [1];
 
   var willNotBeAttemptedByCoreTeam = [];
 
