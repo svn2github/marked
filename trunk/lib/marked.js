@@ -135,7 +135,7 @@ block.pedantic = merge({}, block.normal, {
 
 function Lexer(options) {
   this.tokens = [];
-  this.tokens.links = {};
+  this.tokens.links = Object.create(null);
   this.options = options || marked.defaults;
   this.rules = block.normal;
 
@@ -217,7 +217,7 @@ Lexer.prototype.token = function(src, top) {
       this.tokens.push({
         type: 'code',
         text: !this.options.pedantic
-          ? cap.replace(/\n+$/, '')
+          ? rtrim(cap, '\n')
           : cap
       });
       continue;
@@ -1303,7 +1303,7 @@ function resolveUrl(base, href) {
     if (/^[^:]+:\/*[^/]*$/.test(base)) {
       baseUrls[' ' + base] = base + '/';
     } else {
-      baseUrls[' ' + base] = base.replace(/[^/]*$/, '');
+      baseUrls[' ' + base] = rtrim(base, '/', true);
     }
   }
   base = baseUrls[' ' + base];
@@ -1340,7 +1340,22 @@ function merge(obj) {
 }
 
 function splitCells(tableRow, count) {
-  var cells = tableRow.replace(/([^\\])\|/g, '$1 |').split(/ +\| */),
+  // ensure that every cell-delimiting pipe has a space
+  // before it to distinguish it from an escaped pipe
+  var row = tableRow.replace(/\|/g, function (match, offset, str) {
+        var escaped = false,
+            curr = offset;
+        while (--curr >= 0 && str[curr] === '\\') escaped = !escaped;
+        if (escaped) {
+          // odd number of slashes means | is escaped
+          // so we leave it alone
+          return '|';
+        } else {
+          // add space before unescaped |
+          return ' |';
+        }
+      }),
+      cells = row.split(/ \|/),
       i = 0;
 
   if (cells.length > count) {
@@ -1350,9 +1365,36 @@ function splitCells(tableRow, count) {
   }
 
   for (; i < cells.length; i++) {
-    cells[i] = cells[i].replace(/\\\|/g, '|');
+    // leading or trailing whitespace is ignored per the gfm spec
+    cells[i] = cells[i].trim().replace(/\\\|/g, '|');
   }
   return cells;
+}
+
+// Remove trailing 'c's. Equivalent to str.replace(/c*$/, '').
+// /c*$/ is vulnerable to REDOS.
+// invert: Remove suffix of non-c chars instead. Default falsey.
+function rtrim(str, c, invert) {
+  if (str.length === 0) {
+    return '';
+  }
+
+  // Length of suffix matching the invert condition.
+  var suffLen = 0;
+
+  // Step left until we fail to match the invert condition.
+  while (suffLen < str.length) {
+    var currChar = str.charAt(str.length - suffLen - 1);
+    if (currChar === c && !invert) {
+      suffLen++;
+    } else if (currChar !== c && invert) {
+      suffLen++;
+    } else {
+      break;
+    }
+  }
+
+  return str.substr(0, str.length - suffLen);
 }
 
 /**
