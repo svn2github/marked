@@ -259,7 +259,7 @@ describe('CommonMark 0.28 Lists', function() {
   var section = 'Lists';
 
   // var shouldPassButFails = [];
-  var shouldPassButFails = [282, 270, 280, 278, 273, 275, 274, 264, 277, 265, 276, 279, 267, 269];
+  var shouldPassButFails = [282, 270, 280, 278, 273, 274, 264, 265, 276, 279, 267, 269];
 
   var willNotBeAttemptedByCoreTeam = [];
 
@@ -289,7 +289,7 @@ describe('CommonMark 0.28 Backslash escapes', function() {
   var section = 'Backslash escapes';
 
   // var shouldPassButFails = [];
-  var shouldPassButFails = [290, 291, 300, 301];
+  var shouldPassButFails = [290, 291, 293, 300, 301];
 
   var willNotBeAttemptedByCoreTeam = [];
 
@@ -349,7 +349,7 @@ describe('CommonMark 0.28 Links', function() {
   var section = 'Links';
 
   // var shouldPassButFails = [];
-  var shouldPassButFails = [474, 478, 483, 489, 490, 491, 492, 495, 496, 497, 499, 503, 504, 505, 507, 508, 509, 523, 535];
+  var shouldPassButFails = [468, 474, 478, 483, 489, 490, 491, 492, 495, 496, 497, 499, 503, 504, 505, 507, 508, 509, 523, 535];
 
   var willNotBeAttemptedByCoreTeam = [];
 
@@ -409,7 +409,7 @@ describe('CommonMark 0.28 Hard line breaks', function() {
   var section = 'Hard line breaks';
 
   // var shouldPassButFails = [];
-  var shouldPassButFails = [613];
+  var shouldPassButFails = [611, 606, 609, 613];
 
   var willNotBeAttemptedByCoreTeam = [];
 
