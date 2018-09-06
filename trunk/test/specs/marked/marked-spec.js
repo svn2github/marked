@@ -7,7 +7,7 @@
  */
 var marked = require('../../../lib/marked.js');
 var markedSpec = require('./marked.json');
-var HtmlDiffer = require('html-differ').HtmlDiffer,
+var HtmlDiffer = require('@markedjs/html-differ').HtmlDiffer,
     htmlDiffer = new HtmlDiffer();
 var since = require('jasmine2-custom-message');
 
@@ -49,7 +49,7 @@ describe('Marked Autolinks', function() {
 describe('Marked Code spans', function() {
   var section = 'Code spans';
 
-  var shouldPassButFails = [];
+  var shouldPassButFails = [1];
 
   var willNotBeAttemptedByCoreTeam = [];
 

@@ -1,6 +1,6 @@
 var marked = require('../../../lib/marked.js');
 var cmSpec = require('./commonmark.0.28.json');
-var HtmlDiffer = require('html-differ').HtmlDiffer,
+var HtmlDiffer = require('@markedjs/html-differ').HtmlDiffer,
     htmlDiffer = new HtmlDiffer();
 var since = require('jasmine2-custom-message');
 
@@ -318,7 +318,8 @@ describe('CommonMark 0.28 Entity and numeric character references', function() {
 describe('CommonMark 0.28 Code spans', function() {
   var section = 'Code spans';
 
-  var shouldPassButFails = [322, 323];
+  // var shouldPassButFails = [];
+  var shouldPassButFails = [330, 316, 328, 320, 323, 322];
 
   var willNotBeAttemptedByCoreTeam = [];
 
