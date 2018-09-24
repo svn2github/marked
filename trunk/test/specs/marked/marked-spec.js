@@ -7,8 +7,8 @@
  */
 var marked = require('../../../lib/marked.js');
 var markedSpec = require('./marked.json');
-var HtmlDiffer = require('html-differ').HtmlDiffer,
-    htmlDiffer = new HtmlDiffer();
+var HtmlDiffer = require('@markedjs/html-differ').HtmlDiffer,
+    htmlDiffer = new HtmlDiffer({ignoreSelfClosingSlash: true});
 var since = require('jasmine2-custom-message');
 
 var Messenger = function() {}
@@ -49,7 +49,7 @@ describe('Marked Autolinks', function() {
 describe('Marked Code spans', function() {
   var section = 'Code spans';
 
-  var shouldPassButFails = [1];
+  var shouldPassButFails = [];
 
   var willNotBeAttemptedByCoreTeam = [];
 
