@@ -48,15 +48,6 @@ if ('text' in search) {
 
 if ('options' in search) {
   $optionsElem.value = search.options;
-} else {
-  $optionsElem.value = JSON.stringify(
-    marked.getDefaults(),
-    function (key, value) {
-      if (value && typeof value === 'object' && Object.getPrototypeOf(value) !== Object.prototype) {
-        return undefined;
-      }
-      return value;
-    }, ' ');
 }
 
 if (search.outputType) {
@@ -81,7 +72,7 @@ function handleOutputChange() {
 function handleChange(panes, visiblePane) {
   var active = null;
   for (var i = 0; i < panes.length; i++) {
-    if (panes[i].id === visiblePane) {
+    if (panes[i].id == visiblePane) {
       panes[i].style.display = '';
       active = panes[i];
     } else {
@@ -190,7 +181,9 @@ function checkForChanges() {
       var optionsString = $optionsElem.value || '{}';
       var newOptions = JSON.parse(optionsString);
       options = newOptions;
+      $optionsElem.classList.remove('badParse');
     } catch (err) {
+      $optionsElem.classList.add('badParse');
     }
 
     var lexed = marked.lexer($markdownElem.value, options);
