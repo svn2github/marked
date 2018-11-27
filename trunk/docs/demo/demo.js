@@ -7,19 +7,16 @@ if (!window.fetch) {
   window.fetch = unfetch;
 }
 
-var $markdownElem = document.querySelector('#markdown');
-var $optionsElem = document.querySelector('#options');
+var $inputElem = document.querySelector('#input');
 var $outputTypeElem = document.querySelector('#outputType');
-var $inputTypeElem = document.querySelector('#inputType');
 var $previewIframe = document.querySelector('#preview iframe');
 var $permalinkElem = document.querySelector('#permalink');
 var $clearElem = document.querySelector('#clear');
 var $htmlElem = document.querySelector('#html');
 var $lexerElem = document.querySelector('#lexer');
 var $panes = document.querySelectorAll('.pane');
-var $inputPanes = document.querySelectorAll('.inputPane');
 var inputDirty = true;
-var $activeOutputElem = null;
+var $activeElem = null;
 var changeTimeout = null;
 var search = searchToObject();
 
@@ -31,32 +28,19 @@ $previewIframe.addEventListener('load', function () {
 });
 
 if ('text' in search) {
-  $markdownElem.value = search.text;
+  $inputElem.value = search.text;
 } else {
   fetch('./initial.md')
     .then(function (res) { return res.text(); })
     .then(function (text) {
-      if ($markdownElem.value === '') {
-        $markdownElem.value = text;
+      if ($inputElem.value === '') {
+        $inputElem.value = text;
         inputDirty = true;
         clearTimeout(changeTimeout);
         checkForChanges();
         setScrollPercent(0);
       }
     });
-}
-
-if ('options' in search) {
-  $optionsElem.value = search.options;
-} else {
-  $optionsElem.value = JSON.stringify(
-    marked.getDefaults(),
-    function (key, value) {
-      if (value && typeof value === 'object' && Object.getPrototypeOf(value) !== Object.prototype) {
-        return undefined;
-      }
-      return value;
-    }, ' ');
 }
 
 if (search.outputType) {
@@ -69,50 +53,30 @@ fetch('./quickref.md')
     document.querySelector('#quickref').value = text;
   });
 
-function handleInputChange() {
-  handleChange($inputPanes, $inputTypeElem.value);
-}
-
-function handleOutputChange() {
-  $activeOutputElem = handleChange($panes, $outputTypeElem.value);
-  updateLink();
-}
-
-function handleChange(panes, visiblePane) {
-  var active = null;
-  for (var i = 0; i < panes.length; i++) {
-    if (panes[i].id === visiblePane) {
-      panes[i].style.display = '';
-      active = panes[i];
-    } else {
-      panes[i].style.display = 'none';
-    }
+function handleChange() {
+  for (var i = 0; i < $panes.length; i++) {
+    $panes[i].style.display = 'none';
   }
-  return active;
+  $activeElem = document.querySelector('#' + $outputTypeElem.value);
+  $activeElem.style.display = '';
+
+  updateLink();
 };
 
-$outputTypeElem.addEventListener('change', handleOutputChange, false);
-handleOutputChange();
-$inputTypeElem.addEventListener('change', handleInputChange, false);
-handleInputChange();
+$outputTypeElem.addEventListener('change', handleChange, false);
+handleChange();
 
 function handleInput() {
   inputDirty = true;
 };
 
-$markdownElem.addEventListener('change', handleInput, false);
-$markdownElem.addEventListener('keyup', handleInput, false);
-$markdownElem.addEventListener('keypress', handleInput, false);
-$markdownElem.addEventListener('keydown', handleInput, false);
-
-$optionsElem.addEventListener('change', handleInput, false);
-$optionsElem.addEventListener('keyup', handleInput, false);
-$optionsElem.addEventListener('keypress', handleInput, false);
-$optionsElem.addEventListener('keydown', handleInput, false);
+$inputElem.addEventListener('change', handleInput, false);
+$inputElem.addEventListener('keyup', handleInput, false);
+$inputElem.addEventListener('keypress', handleInput, false);
+$inputElem.addEventListener('keydown', handleInput, false);
 
 $clearElem.addEventListener('click', function () {
-  $markdownElem.value = '';
-  $optionsElem.value = '';
+  $inputElem.value = '';
   handleInput();
 }, false);
 
@@ -146,7 +110,7 @@ function jsonString(input) {
 };
 
 function getScrollSize() {
-  var e = $activeOutputElem;
+  var e = $activeElem;
 
   return e.scrollHeight - e.clientHeight;
 };
@@ -157,10 +121,10 @@ function getScrollPercent() {
     return 1;
   }
 
-  return $activeOutputElem.scrollTop / size;
+  return $activeElem.scrollTop / size;
 };
 function setScrollPercent(percent) {
-  $activeOutputElem.scrollTop = percent * getScrollSize();
+  $activeElem.scrollTop = percent * getScrollSize();
 };
 
 function updateLink() {
@@ -169,13 +133,11 @@ function updateLink() {
     outputType = 'outputType=' + $outputTypeElem.value + '&';
   }
 
-  $permalinkElem.href = '?' + outputType + 'text=' + encodeURIComponent($markdownElem.value)
-      + '&options=' + encodeURIComponent($optionsElem.value);
+  $permalinkElem.href = '?' + outputType + 'text=' + encodeURIComponent($inputElem.value);
   history.replaceState('', document.title, $permalinkElem.href);
 }
 
 var delayTime = 1;
-var options = {};
 function checkForChanges() {
   if (inputDirty) {
     inputDirty = false;
@@ -186,16 +148,7 @@ function checkForChanges() {
 
     var scrollPercent = getScrollPercent();
 
-    try {
-      var optionsString = $optionsElem.value || '{}';
-      var newOptions = JSON.parse(optionsString);
-      options = newOptions;
-      $optionsElem.classList.remove('badParse');
-    } catch (err) {
-      $optionsElem.classList.add('badParse');
-    }
-
-    var lexed = marked.lexer($markdownElem.value, options);
+    var lexed = marked.lexer($inputElem.value);
 
     var lexedList = [];
 
@@ -207,7 +160,7 @@ function checkForChanges() {
       lexedList.push('{' + lexedLine.join(', ') + '}');
     }
 
-    var parsed = marked.parser(lexed, options);
+    var parsed = marked.parser(lexed);
 
     if (iframeLoaded) {
       $previewIframe.contentDocument.body.innerHTML = (parsed);
