@@ -44,7 +44,7 @@ block.def = edit(block.def)
   .replace('title', block._title)
   .getRegex();
 
-block.bullet = /(?:[*+-]|\d+\.)/;
+block.bullet = /(?:[*+-]|\d{1,9}\.)/;
 block.item = /^( *)(bull) [^\n]*(?:\n(?!\1bull )[^\n]*)*/;
 block.item = edit(block.item, 'gm')
   .replace(/bull/g, block.bullet)
@@ -1271,14 +1271,6 @@ Parser.prototype.tok = function() {
     }
     case 'text': {
       return this.renderer.paragraph(this.parseText());
-    }
-    default: {
-      var errMsg = 'Token with "' + this.token.type + '" type was not found.';
-      if (this.options.silent) {
-        console.log(errMsg);
-      } else {
-        throw new Error(errMsg);
-      }
     }
   }
 };
