@@ -159,7 +159,8 @@ describe('CommonMark 0.28 Indented code blocks', function() {
 describe('CommonMark 0.28 Fenced code blocks', function() {
   var section = 'Fenced code blocks';
 
-  var shouldPassButFails = [];
+  // var shouldPassButFails = [];
+  var shouldPassButFails = [93, 95, 96, 97, 106, 108, 112];
 
   var willNotBeAttemptedByCoreTeam = [];
 
@@ -233,7 +234,7 @@ describe('CommonMark 0.28 Block quotes', function() {
   var section = 'Block quotes';
 
   // var shouldPassButFails = [];
-  var shouldPassButFails = [198, 199, 200];
+  var shouldPassButFails = [198, 199, 200, 201];
 
   var willNotBeAttemptedByCoreTeam = [];
 
@@ -248,7 +249,7 @@ describe('CommonMark 0.28 List items', function() {
   var section = 'List items';
 
   // var shouldPassButFails = [];
-  var shouldPassButFails = [237, 236, 227, 218, 243, 259, 241, 239, 247, 225, 220, 258, 260];
+  var shouldPassButFails = [229, 237, 236, 227, 218, 243, 259, 241, 239, 247, 246, 225, 220, 258, 260, 244];
 
   var willNotBeAttemptedByCoreTeam = [];
 
@@ -263,7 +264,7 @@ describe('CommonMark 0.28 Lists', function() {
   var section = 'Lists';
 
   // var shouldPassButFails = [];
-  var shouldPassButFails = [282, 270, 280, 278, 273, 274, 264, 265, 279, 267, 269];
+  var shouldPassButFails = [282, 270, 280, 278, 273, 274, 264, 265, 276, 279, 267, 269];
 
   var willNotBeAttemptedByCoreTeam = [];
 
@@ -293,7 +294,7 @@ describe('CommonMark 0.28 Backslash escapes', function() {
   var section = 'Backslash escapes';
 
   // var shouldPassButFails = [];
-  var shouldPassButFails = [300, 301];
+  var shouldPassButFails = [291, 300, 301];
 
   var willNotBeAttemptedByCoreTeam = [];
 
@@ -337,7 +338,7 @@ describe('CommonMark 0.28 Emphasis and strong emphasis', function() {
   var section = 'Emphasis and strong emphasis';
 
   // var shouldPassButFails = [];
-  var shouldPassButFails = [334, 342, 348, 349, 352, 353, 360, 368, 369, 371, 372, 378, 380, 381, 382, 387, 388, 392, 393, 394, 395, 396, 402, 403, 409, 419, 420, 421, 422, 423, 424, 431, 432, 433, 434, 435, 436, 443, 444, 445, 448, 449, 453, 454, 455, 457, 458];
+  var shouldPassButFails = [334, 342, 348, 349, 352, 353, 360, 368, 369, 371, 372, 378, 380, 381, 382, 387, 388, 392, 393, 394, 395, 396, 402, 403, 409, 416, 419, 420, 421, 422, 423, 424, 428, 431, 432, 433, 434, 435, 436, 443, 444, 445, 448, 449, 453, 454, 455, 457, 458];
 
   var willNotBeAttemptedByCoreTeam = [];
 

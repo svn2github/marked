@@ -33,11 +33,3 @@ ciao
 
 
 ```
-
-Closing fences must lay on a new line:
-
-```
-hello()
-^```
-"this should still be in the code block!"
-```

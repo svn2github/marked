@@ -8,7 +8,7 @@
 
 The spaces after the `>` characters can be omitted:
 
-># Bar
+># Foo
 >bar
 > baz
 
@@ -16,7 +16,7 @@ The spaces after the `>` characters can be omitted:
 
 The `>` characters can be indented 1-3 spaces:
 
-   > # Baz
+   > # Foo
    > bar
  > baz
 
@@ -24,7 +24,7 @@ The `>` characters can be indented 1-3 spaces:
 
 Four spaces gives us a code block:
 
-    > # Qux
+    > # Foo
     > bar
     > baz
 
@@ -32,7 +32,7 @@ Four spaces gives us a code block:
 
 The Laziness clause allows us to omit the `>` before paragraph continuation text:
 
-> # Quux
+> # Foo
 > bar
 baz
 

@@ -17,7 +17,7 @@ paragraph before head with hash
 # how are you
 
 paragraph before head with equals
-how are you again
+how are you
 ===========
 
 paragraph before blockquote
